@@ -2,6 +2,9 @@ from framework.ui_components.base_page import BasePage
 
 
 class LoginPage(BasePage):
+    LOGIN_WITH_AUTH = "div.pf-c-login__container"
+    KUBE_ADMIN_AUTH_LINK = 'a:has-text("kube:admin")'
+    HTPASSWD_AUTH_LINK = 'a:has-text("htpasswd")'
     USERNAME_INPUT = "[id='inputUsername']"
     PASSWORD_INPUT = "[id='inputPassword']"
     LOGIN_BUTTON = 'button:has-text("Log in")'
@@ -23,7 +26,24 @@ class LoginPage(BasePage):
         timeout for the URL to contain the specified string. Raises TimeoutError if not found.
         :return: bool: True if URL contains "oauth" within the timeout, raises TimeoutError otherwise.
         """
-        return self.wait_for_url_to_contain("oauth")
+        return self.wait_for_url_to_contain("oauth") and self.is_visible(self.LOGIN_WITH_AUTH)
+
+    def choose_login_auth_type(self, auth_type: str) -> bool:
+        """
+        Selects the authentication type on the login page by clicking the appropriate auth link.
+        Accepts "kube:admin" or "htpasswd" as valid auth types (case-insensitive).
+        :param str auth_type: The authentication type to select ("kube:admin" or "htpasswd").
+        :return: bool: True if the auth link click is successful, False if the click operation fails
+        or raises TimeoutError.
+        """
+        if auth_type.lower() == "kube:admin":
+            login_auth_link = self.KUBE_ADMIN_AUTH_LINK
+        elif auth_type.lower() == "htpasswd":
+            login_auth_link = self.HTPASSWD_AUTH_LINK
+        else:
+            raise AssertionError(f"Invalid login {auth_type} provided")
+
+        return self.click_element(login_auth_link)
 
     def login(self) -> bool:
         """
