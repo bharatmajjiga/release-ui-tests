@@ -1,0 +1,37 @@
+Feature: Pipelines UI Navigation & Visibility
+
+  Background:
+  Given user logged in with kube:admin
+
+  @smoke @e2e
+  Scenario: Verify successful navigation to Overview page
+    When Validate Pipelines button is visible in the left navigation bar
+    And the user clicks on Pipelines button
+    Then the user navigates to the Overview page
+
+
+  @smoke @e2e
+  Scenario: Verify successful navigation to Pipelines page and Sub Tabs
+    When Validate Pipelines button is visible in the left navigation bar
+    And the user clicks on Pipelines button
+    Then the user navigates to the Pipelines page
+    And the user navigates to PipelineRuns tab
+    And the user navigates to Repositories tab
+
+
+  @smoke @e2e
+  Scenario: Verify successful navigation to Tasks page and Sub Tabs
+    When Validate Pipelines button is visible in the left navigation bar
+    And the user clicks on Pipelines button
+    Then the user navigates to the Tasks page
+    And the user navigates to TaskRuns tab
+
+
+  @smoke @e2e
+  Scenario: Verify successful navigation to Triggers page and Sub Tabs
+    When Validate Pipelines button is visible in the left navigation bar
+    And the user clicks on Pipelines button
+    Then the user navigates to the Triggers page
+    And the user navigates to TriggerTemplates tab
+    And the user navigates to TriggerBindings tab
+    And the user navigates to ClusterTriggerBindings tab

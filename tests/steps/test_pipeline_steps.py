@@ -2,7 +2,7 @@ from typing import Any, Dict
 
 from pytest_bdd import scenarios, then
 
-scenarios("pipelines_smoke.feature")
+scenarios("pipelines_navigation_validation.feature")
 
 
 @then("the Pipelines page should be visible")

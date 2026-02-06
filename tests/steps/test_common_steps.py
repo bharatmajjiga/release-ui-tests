@@ -3,6 +3,24 @@ from typing import Any, Dict
 from pytest_bdd import given, parsers, then, when
 
 
+@given(parsers.parse("user logged in with {auth_type}"))
+def user_logged_in_with_auth(page: Dict[str, Any], auth_type: str) -> None:
+    """
+    Combined step: navigates to console login page, selects auth type, enters credentials,
+    and verifies successful login (Overview page). Used in Background for parallel feature files
+    where one browser session is shared across all scenarios in the feature file.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :param str auth_type: The authentication type to select (e.g. "kube:admin", "htpasswd").
+    :return: None: Raises AssertionError or TimeoutError if any step fails.
+    """
+    assert page["login"].goto() and page["login"].verify_successful_navigation_to_login_page(), (
+        "Failed to navigate to OpenShift login page."
+    )
+    page["login"].choose_login_auth_type(auth_type)
+    page["login"].login()
+    page["overview"].verify_on_page()
+
+
 @given("the user is on the OpenShift login page")
 def user_on_login_page(page: Dict[str, Any]) -> None:
     """

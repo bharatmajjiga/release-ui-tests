@@ -24,9 +24,9 @@ class LeftNavigationBarLocators:
     KUBE_ADMIN_MENU = 'button[aria-label="User menu"]'
     # Links under Pipelines button/menu
     NAV_OVERVIEW_LINK = 'a[href="/pipelines-overview/all-namespaces"]'
-    NAV_PIPELINES_LINK = 'a:has-text("Pipelines")'
-    NAV_TASKS_LINK = 'a:has-text("Tasks")'
-    NAV_TRIGGERS_LINK = 'a:has-text("Triggers")'
+    NAV_PIPELINES_LINK = 'a[href="/pipelines/all-namespaces"]'
+    NAV_TASKS_LINK = 'a[href="/tasks/all-namespaces"]'
+    NAV_TRIGGERS_LINK = 'a[href="/triggers/all-namespaces"]'
 
 
 class PipelinesPageLocators:

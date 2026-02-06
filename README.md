@@ -103,7 +103,7 @@ pip install -r requirements.txt
 ```
 pre-commit install
 ```
-- To execute playwright based test, run the following setup:
+- To execute playwright based tests, install Playwright browsers (required for both headed and headless runs):
 ```
 ### Linux/Mac OS
 playwright install --with-deps
@@ -111,6 +111,7 @@ playwright install --with-deps
 ### Fedora
 playwright install
 ```
+  Headless runs (`pytest -m smoke`) use Chromium Headless Shell; headed runs (`pytest -m smoke --headed`) use Chromium. If headless fails with "Executable doesn't exist at ... chromium_headless_shell", run `playwright install chromium` to install it.
 
 ## Executing tests
 ### Execution using pytest
@@ -119,6 +120,10 @@ playwright install
  - Open run configuration (of your test)
    - Add env variable to the execution `export CONSOLE_USERNAME=<username of env Ex:kubeadmin>; export CONSOLE_PASSWORD=<password of your env>; export CONSOLE_URL=<console url of your env Ex:https://console-openshift-console.apps.test.redhat.com>`
  - To execute using several marks use the following structure: `pytest -m "mark1 and mark2"`.
+
+### Parallel execution
+ - The framework uses one browser session per feature file by default (module-scoped page fixture).
+ - Run tests in parallel: `pytest -m smoke -n auto` (auto-detects number of workers).
 
 
 ### Contribution guidelines ###
