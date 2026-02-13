@@ -45,6 +45,7 @@ class Config(object, metaclass=Singleton):
         self._base_url = os.getenv("CONSOLE_URL")
         self._username = os.getenv("CONSOLE_USERNAME")
         self._password = os.getenv("CONSOLE_PASSWORD")
+        self._auth_type = os.getenv("CONSOLE_AUTH_TYPE", "kube:admin")
 
         # Parse Timeout (Handle string to int conversion safely)
         timeout_env = os.getenv("APP_TIMEOUT", "90000")
@@ -91,6 +92,15 @@ class Config(object, metaclass=Singleton):
         :return: str: The password string for authentication.
         """
         return self._password
+
+    @property
+    def auth_type(self) -> str:
+        """
+        Gets the login auth type (e.g. kube:admin, htpasswd).
+        Value is read from CONSOLE_AUTH_TYPE environment variable, defaults to kube:admin.
+        :return: str: The auth type string for login.
+        """
+        return self._auth_type
 
     @property
     def timeout_ms(self) -> int:

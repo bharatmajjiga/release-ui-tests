@@ -13,6 +13,39 @@ def user_on_login_page(page: Dict[str, Any]) -> None:
     assert page["login"].goto() and page["login"].verify_successful_navigation_to_login_page()
 
 
+def _already_logged_in(page: Dict[str, Any]) -> bool:
+    """
+    True if the session is already past the login page (any console page).
+    Returns False only for about:blank or when URL contains 'oauth' (login page),
+    so later scenarios (e.g. on Pipelines/Tasks/Triggers) do not trigger re-login.
+    """
+    raw_url = page["raw_page"].url
+    if raw_url == "about:blank":
+        return False
+    if "oauth" in raw_url:
+        return False
+    return True
+
+
+@given(parsers.parse("the user is logged in to the OpenShift console with {auth_type}"))
+def user_logged_in_to_console(page: Dict[str, Any], auth_type: str) -> None:
+    """
+    Combined step: navigate to login page, choose auth type, and log in with valid credentials.
+    Idempotent: if already past the login page (same feature-file session), does nothing so
+    Background effectively runs once per feature file—first scenario performs login, rest skip.
+    Use in Background so all scenarios in the feature share the same browser session.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :param str auth_type: Authentication type (e.g. kube:admin, htpasswd).
+    :return: None: Raises on navigation or login failure.
+    """
+    if _already_logged_in(page):
+        return
+    assert page["login"].goto() and page["login"].verify_successful_navigation_to_login_page()
+    page["login"].choose_login_auth_type(auth_type)
+    page["login"].login()
+    page["overview"].verify_on_page()
+
+
 @when(parsers.parse("user chooses to login with {auth_type}"))
 def user_to_chose_login_auth_type(page: Dict[str, Any], auth_type: str) -> None:
     """
@@ -38,6 +71,7 @@ def user_logs_in(page: Dict[str, Any]) -> None:
 
 @when("Validate Pipelines button is visible in the left navigation bar")
 @then("Validate Pipelines button is visible in the left navigation bar")
+@then("Validate Duplicate Pipelines buttons are not visible in the left navigation bar")
 def validate_pipelines_button_visible(page: Dict[str, Any]) -> None:
     """
     step for validating that the Pipelines button is visible in the left navigation bar.

@@ -3,6 +3,7 @@ from typing import Any, Dict
 from pytest_bdd import scenarios, then
 
 scenarios("pipelines_smoke.feature")
+scenarios("pipelines_regression.feature")
 
 
 @then("the Pipelines page should be visible")
