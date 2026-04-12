@@ -1,9 +1,9 @@
 from playwright.async_api import Page
 
 from framework.config.config import Config
+from framework.locators.pipelines import PipelinesOverViewPageLocators
 from framework.ui_components.base_page import BasePage
 from framework.ui_components.console_url_patterns import PIPELINES_OVERVIEW_URL
-from framework.ui_components.locators import PipelinesOverViewPageLocators
 
 
 class PipelinesOverViewPage(BasePage):

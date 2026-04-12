@@ -1,8 +1,8 @@
 from playwright.async_api import Page
 
 from framework.config.config import Config
+from framework.locators.overview import OverViewPageLocators
 from framework.ui_components.base_page import BasePage
-from framework.ui_components.locators import OverViewPageLocators
 
 # Flag to track if tour has been skipped across test sessions
 # This avoids unnecessary wait time in test execution

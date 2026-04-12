@@ -12,10 +12,7 @@ from framework.config.config import Config
 from framework.ui_components.commons.left_navigation_bar import LeftNavigationBar
 from framework.ui_components.commons.login_page import LoginPage
 from framework.ui_components.overview_page import OverViewPage
-from framework.ui_components.pipelines_overview_page import PipelinesOverViewPage
-from framework.ui_components.pipelines_page import PipelinesPage
-from framework.ui_components.tasks_page import TasksPage
-from framework.ui_components.triggers_page import TriggersPage
+from framework.ui_components.page_containers import PipelinesPages, TasksPages, TriggersPages
 
 
 @pytest.fixture(scope="session")
@@ -92,24 +89,61 @@ async def playwright_page(
 @pytest_asyncio.fixture(scope="module", loop_scope="session")
 async def page(playwright_page: Page, config: Config) -> Dict[str, Any]:
     """
-    fixture that injects custom application Page Objects.
+    fixture that injects hierarchical Page Object containers.
     Scoped to the test module so all scenarios from the same feature registration share one
     browser context. Each module that calls ``scenarios()`` gets a new context.
 
     Sets default timeout for all page actions (click, fill, wait_for, etc.) and navigation
     operations (goto, reload, etc.) to use framework's configured timeout value (from APP_TIMEOUT
     env var, default 90000ms).
+
     :param Page playwright_page: Raw Playwright page for this module's browser context.
     :param Config config: Config object containing application configuration
-    :return: Dict[str, Any]: Dictionary containing:
+    :return: Dict[str, Any]: Dictionary containing hierarchical page containers:
         - "raw_page": The raw Page object for direct access if needed.
         - "login": LoginPage instance for login-related operations.
         - "nav": LeftNavigationBar instance for navigation operations.
         - "overview": OverViewPage instance for overview page operations.
-        - "pipelines_overview": PipelinesOverViewPage instance for pipelines overview page operations.
-        - "pipelines": PipelinesPage instance for pipelines page operations.
-        - "tasks": TasksPage instance for tasks page operations.
-        - "triggers": TriggersPage instance for triggers page operations.
+        - "pipelines": PipelinesPages container with hierarchical structure:
+            - pipelines.overview: Pipelines overview dashboard
+            - pipelines.list: Pipelines list page
+            - pipelines.runs: PipelineRuns list page
+            - pipelines.repositories: Repositories list page
+            - pipelines.builder: Pipeline builder page
+            - pipelines.pipeline.details: Pipeline details page
+            - pipelines.pipeline.yaml: Pipeline YAML page
+            - pipelines.pipeline.parameters: Pipeline parameters page
+            - pipelines.pipeline.runs_tab: Pipeline runs tab page
+            - pipelines.pipelinerun.details: PipelineRun details page
+            - pipelines.pipelinerun.yaml: PipelineRun YAML page
+            - pipelines.pipelinerun.parameters: PipelineRun parameters page
+            - pipelines.pipelinerun.logs: PipelineRun logs page
+            - pipelines.pipelinerun.task_runs: PipelineRun task runs page
+            - pipelines.create_run: Create PipelineRun page
+        - "tasks": TasksPages container with hierarchical structure:
+            - tasks.list: Tasks list page
+            - tasks.runs: TaskRuns list page
+            - tasks.task.details: Task details page
+            - tasks.task.yaml: Task YAML page
+            - tasks.create: Create Task page
+        - "triggers": TriggersPages container with hierarchical structure:
+            - triggers.list: Triggers main page
+            - triggers.eventlistener.details: EventListener details page
+            - triggers.eventlistener.yaml: EventListener YAML page
+            - triggers.triggertemplate.details: TriggerTemplate details page
+            - triggers.triggertemplate.yaml: TriggerTemplate YAML page
+            - triggers.triggerbinding.details: TriggerBinding details page
+            - triggers.triggerbinding.yaml: TriggerBinding YAML page
+            - triggers.create.eventlistener: Create EventListener page
+            - triggers.create.triggertemplate: Create TriggerTemplate page
+            - triggers.create.triggerbinding: Create TriggerBinding page
+            - triggers.create.clustertriggerbinding: Create ClusterTriggerBinding page
+
+    Usage examples:
+        await page["pipelines"].list.click_create_button()
+        await page["pipelines"].pipeline.details.verify_on_page()
+        await page["tasks"].task.yaml.click_save()
+        await page["triggers"].eventlistener.details.get_eventlistener_name()
     """
     overview_page_module._tour_skipped = False
 
@@ -121,8 +155,7 @@ async def page(playwright_page: Page, config: Config) -> Dict[str, Any]:
         "login": LoginPage(playwright_page, config),
         "nav": LeftNavigationBar(playwright_page, config),
         "overview": OverViewPage(playwright_page, config),
-        "pipelines_overview": PipelinesOverViewPage(playwright_page, config),
-        "pipelines": PipelinesPage(playwright_page, config),
-        "tasks": TasksPage(playwright_page, config),
-        "triggers": TriggersPage(playwright_page, config),
+        "pipelines": PipelinesPages(playwright_page, config),
+        "tasks": TasksPages(playwright_page, config),
+        "triggers": TriggersPages(playwright_page, config),
     }
