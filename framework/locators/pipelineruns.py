@@ -117,6 +117,7 @@ class PipelineRunLogsPageLocators:
     # Task navigation
     TASK_NAVIGATION = 'nav[aria-label="Global"]'
     TASK_LINK = 'nav[aria-label="Global"] a'
+    TASK_LINK_ACTIVE = 'nav[aria-label="Global"] a.pf-m-current'
 
     # Logs toolbar buttons
     DOWNLOAD_BUTTON = 'button:has-text("Download"):not(:has-text("all"))'
@@ -124,7 +125,39 @@ class PipelineRunLogsPageLocators:
     EXPAND_BUTTON = 'button:has-text("Expand")'
 
     # Logs content area
-    LOGS_CONTAINER = 'div:has(> div:has-text("STEP-"))'
+    LOGS_CONTAINER = 'div[data-test-id="logs-task-container"]'
+    # Logs are in divs within the multi-stream logs component
+    # Try multiple selectors to find log content
+    LOGS_TEXT_CONTENT = (
+        "div.odc-multi-stream-logs__logviewer, div.odc-multi-stream-logs, div.odc-pipeline-run-logs__container"
+    )
+    LOG_WINDOW = "div.log-window"
+
+    # Task status indicators in navigation
+    # Task status is indicated by color of the div containing the SVG
+    # Success: green rgb(56, 129, 47), Failure: red, Running: blue, etc.
+    TASK_SUCCESS_ICON = 'div[style*="rgb(56, 129, 47)"]'  # Green color for success
+    TASK_FAILURE_ICON = 'div[style*="rgb(201, 25, 11)"]'  # Red color for failure
+    TASK_RUNNING_ICON = 'div[style*="rgb(0, 102, 204)"]'  # Blue color for running
+    TASK_PENDING_ICON = 'div[style*="rgb(106, 110, 115)"]'  # Gray color for pending
+
+    # Status badges/labels
+    STATUS_LABEL = '[data-test="status-text"]'
+    SUCCESS_STATUS = '[data-test="status-text"]:has-text("Succeeded")'
+    FAILED_STATUS = '[data-test="status-text"]:has-text("Failed")'
+    RUNNING_STATUS = '[data-test="status-text"]:has-text("Running")'
+
+    # Step information
+    STEP_HEADER = 'div:has-text("STEP-")'
+    STEP_CONTAINER = 'div[class*="step"]'
+
+    # Loading states
+    LOADING_INDICATOR = '[data-test="loading-indicator"]'
+    SKELETON_LOADER = ".pf-c-skeleton"
+
+    # Empty/No data states
+    NO_LOGS_MESSAGE = 'text="No logs available"'
+    NO_TASKS_MESSAGE = 'text="No tasks found"'
 
 
 class PipelineRunTaskRunsPageLocators:
