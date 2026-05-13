@@ -23,7 +23,7 @@ class LeftNavigationBarLocators:
     PIPELINES_BUTTON = '[data-test="nav-pipelines"]'
     KUBE_ADMIN_MENU = 'button[aria-label="User menu"]'
     # Links under Pipelines button/menu
-    NAV_OVERVIEW_LINK = 'a[href="/pipelines-overview/all-namespaces"]'
+    NAV_OVERVIEW_LINK = 'a[href^="/pipelines-overview/ns/"]'
     NAV_PIPELINES_LINK = 'a:has-text("Pipelines")'
     NAV_TASKS_LINK = 'a:has-text("Tasks")'
     NAV_TRIGGERS_LINK = 'a:has-text("Triggers")'
@@ -33,10 +33,9 @@ class PipelinesPageLocators:
     """Locators for the Pipelines Page"""
 
     PIPELINES_HEADER = 'h1:has-text("Pipelines")'
-    # Tabs on Pipelines page
-    PIPELINES_TAB = 'a[href="/pipelines/all-namespaces/'
-    PIPELINE_RUNS_TAB = 'a[href="/pipelines/all-namespaces/pipeline-runs"]'
-    REPOSITORIES_TAB = 'a[href="/pipelines/all-namespaces/repositories"]'
+    PIPELINES_TAB = 'a[href^="/pipelines/ns/"]'
+    PIPELINE_RUNS_TAB = 'a[href^="/pipelines/ns/"][href$="/pipeline-runs"]'
+    REPOSITORIES_TAB = 'a[href^="/pipelines/ns/"][href$="/repositories"]'
     PIPELINES_DATA_LOAD_CHECK = "table.ReactVirtualized__VirtualGrid"
     PIPELINES_NO_DATA_LOAD_CHECK = "#no-resource-msg"
 
@@ -55,12 +54,11 @@ class PipelinesOverViewPageLocators:
 
 
 class TasksPageLocators:
-    """Locators for the Tasks Page"""
+    """Locators for the Tasks Page (tasks/all-namespaces/… or tasks/ns/<namespace>/…)."""
 
     TASKS_HEADER = 'h1:has-text("Tasks")'
-    # Tabs on Tasks page
-    TASKS_TAB = 'a[href="/tasks/all-namespaces/'
-    TASK_RUNS_TAB = 'a[href="/tasks/all-namespaces/task-runs"]'
+    TASKS_TAB = 'a[href^="/tasks/all-namespaces"],a[href^="/tasks/ns/"]'
+    TASK_RUNS_TAB = 'a[href^="/tasks/all-namespaces/"][href$="/task-runs"], a[href^="/tasks/ns/"][href$="/task-runs"]'
     TASKS_DATA_LOAD_CHECK = "table.ReactVirtualized__VirtualGrid"
     TASKS_NO_DATA_LOAD_CHECK = "#no-resource-msg"
 
@@ -69,10 +67,26 @@ class TriggersPageLocators:
     """Locators for the Triggers Page"""
 
     TRIGGERS_HEADER = 'h1:has-text("Triggers")'
-    # Tabs on Triggers page
-    EVENT_LISTENERS_TAB = 'a[href="/triggers/all-namespaces/'
-    TRIGGER_TEMPLATES_TAB = 'a[href="/triggers/all-namespaces/trigger-templates"]'
-    TRIGGER_BINDINGS_TAB = 'a[href="/triggers/all-namespaces/trigger-bindings"]'
-    CLUSTER_TRIGGER_BINDINGS_TAB = 'a[href="/triggers/all-namespaces/cluster-trigger-bindings"]'
+    _TRIGGERS_TAB_EXCLUDE = (
+        ':not([href*="/trigger-templates"]):not([href*="/trigger-bindings"]):not([href*="/cluster-trigger-bindings"])'
+    )
+    EVENT_LISTENERS_TAB = (
+        'a[href^="/triggers/all-namespaces"]'
+        + _TRIGGERS_TAB_EXCLUDE
+        + ', a[href^="/triggers/ns/"]'
+        + _TRIGGERS_TAB_EXCLUDE
+    )
+    TRIGGER_TEMPLATES_TAB = (
+        'a[href^="/triggers/all-namespaces/"][href$="/trigger-templates"], '
+        'a[href^="/triggers/ns/"][href$="/trigger-templates"]'
+    )
+    TRIGGER_BINDINGS_TAB = (
+        'a[href^="/triggers/all-namespaces/"][href$="/trigger-bindings"], '
+        'a[href^="/triggers/ns/"][href$="/trigger-bindings"]'
+    )
+    CLUSTER_TRIGGER_BINDINGS_TAB = (
+        'a[href^="/triggers/all-namespaces/"][href$="/cluster-trigger-bindings"], '
+        'a[href^="/triggers/ns/"][href$="/cluster-trigger-bindings"]'
+    )
     TRIGGERS_DATA_LOAD_CHECK = "table.ReactVirtualized__VirtualGrid"
     TRIGGERS_NO_DATA_LOAD_CHECK = "#no-resource-msg"

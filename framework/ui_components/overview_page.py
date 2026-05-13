@@ -1,4 +1,4 @@
-from playwright.sync_api import Page
+from playwright.async_api import Page
 
 from framework.config.config import Config
 from framework.ui_components.base_page import BasePage
@@ -19,7 +19,7 @@ class OverViewPage(BasePage):
         super().__init__(page, config)
         self.locators = OverViewPageLocators()
 
-    def verify_on_page(self) -> bool:
+    async def verify_on_page(self) -> bool:
         """
         Verifies that the Overview page is currently displayed by checking URL and header visibility.
         First checks for and dismisses the "Skip tour" popup if present (for first-time login).
@@ -35,15 +35,9 @@ class OverViewPage(BasePage):
         """
         global _tour_skipped
 
-        # Only check for tour popup if it hasn't been skipped yet
-        # TODO: When parallel execution is implemented, wrap this block in:
-        #       with _tour_skipped_lock:
-        #           if not _tour_skipped:
-        #               ... (existing logic)
         if not _tour_skipped:
-            if self.is_visible(self.locators.SKIP_TOUR_BUTTON):
-                self.click_element(self.locators.SKIP_TOUR_BUTTON)
-            # Set flag to True whether popup was found or not to skip future checks
+            if await self.is_visible(self.locators.SKIP_TOUR_BUTTON):
+                await self.click_element(self.locators.SKIP_TOUR_BUTTON)
             _tour_skipped = True
 
-        return self._verify_page("dashboards", self.locators.OVERVIEW_HEADER, "Overview page")
+        return await self._verify_page("dashboards", self.locators.OVERVIEW_HEADER, "Overview page")

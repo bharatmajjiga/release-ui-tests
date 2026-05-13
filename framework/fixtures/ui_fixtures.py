@@ -1,7 +1,9 @@
+import asyncio
 from typing import Any, Dict
 
 import pytest
-from playwright.sync_api import Page
+import pytest_asyncio
+from playwright.async_api import Page
 from pytest import FixtureRequest
 
 from framework.config.config import Config
@@ -25,6 +27,14 @@ def config(request: FixtureRequest) -> object:
 
 
 @pytest.fixture(scope="session")
+def playwright_event_loop(request: FixtureRequest) -> asyncio.AbstractEventLoop:
+    """
+    Session event loop used by pytest-playwright-asyncio and synchronous BDD steps.
+    """
+    return request.getfixturevalue("_session_event_loop")
+
+
+@pytest.fixture(scope="session")
 def browser_context_args(browser_context_args: Dict[str, Any], request: FixtureRequest) -> Dict[str, Any]:
     """
     fixture that configures browser context arguments,
@@ -45,8 +55,8 @@ def browser_context_args(browser_context_args: Dict[str, Any], request: FixtureR
     }
 
 
-@pytest.fixture(scope="function")
-def page(page: Page, config: Config) -> Dict[str, Any]:
+@pytest_asyncio.fixture
+async def page(page: Page, config: Config) -> Dict[str, Any]:
     """
     fixture that injects custom application Page Objects.
     Sets default timeout for all page actions (click, fill, wait_for, etc.) and navigation
@@ -64,13 +74,7 @@ def page(page: Page, config: Config) -> Dict[str, Any]:
         - "tasks": TasksPage instance for tasks page operations.
         - "triggers": TriggersPage instance for triggers page operations.
     """
-    # Set default timeout for all page actions (click, fill, wait_for, etc.)
-    # This ensures all Playwright action methods use framework's configured timeout
     page.set_default_timeout(config.timeout_ms)
-
-    # Set default navigation timeout for navigation operations (goto, reload, etc.)
-    # Note: navigation_timeout is not a valid parameter for browser.new_context(),
-    # so we set it here on the context after it's created
     page.context.set_default_navigation_timeout(config.timeout_ms)
 
     return {
