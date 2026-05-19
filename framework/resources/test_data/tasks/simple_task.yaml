@@ -1,0 +1,13 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: simple-task
+  labels:
+    version: v1
+spec:
+  steps:
+    - name: echo
+      image: registry.redhat.io/ubi9/ubi-minimal
+      script: |
+        #!/bin/bash
+        echo "Hello from simple task!"

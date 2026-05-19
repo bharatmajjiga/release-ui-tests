@@ -4,6 +4,7 @@ from framework.config.config import Config
 from framework.locators.tasks import CreateTaskPageLocators
 from framework.ui_components.base_page import BasePage
 from framework.ui_components.commons.favorites import Favorites
+from framework.ui_components.commons.monaco_editor import MonacoEditor
 from framework.ui_components.commons.project_selector import ProjectSelector
 
 
@@ -15,6 +16,8 @@ class CreateTaskPage(BasePage):
         self.locators = CreateTaskPageLocators()
         self.project_selector = ProjectSelector(page, config)
         self.favorites = Favorites(page, config)
+        # Compose MonacoEditor component for editor interactions
+        self.monaco_editor = MonacoEditor(page, config)
 
     async def verify_on_page(self) -> bool:
         """

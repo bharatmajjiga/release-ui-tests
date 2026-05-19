@@ -5,6 +5,7 @@ from framework.locators.tasks import TaskYamlPageLocators
 from framework.ui_components.base_page import BasePage
 from framework.ui_components.commons.actions_menu import ActionsMenu
 from framework.ui_components.commons.favorites import Favorites
+from framework.ui_components.commons.monaco_editor import MonacoEditor
 from framework.ui_components.commons.project_selector import ProjectSelector
 from framework.ui_components.console_url_patterns import TASK_YAML_URL
 
@@ -18,6 +19,8 @@ class TaskYamlPage(BasePage):
         self.project_selector = ProjectSelector(page, config)
         self.favorites = Favorites(page, config)
         self.actions_menu = ActionsMenu(page, config)
+        # Compose MonacoEditor component for editor interactions
+        self.monaco_editor = MonacoEditor(page, config)
 
     async def verify_on_page(self) -> bool:
         """

@@ -30,6 +30,67 @@ class BasePage:
             await loc.click()
         return True
 
+    async def click_element_fast(self, locator: str, timeout: int = 5000) -> bool:
+        """
+        Fast click optimized for stable, visible elements (e.g., navigation buttons).
+
+        Uses reduced timeout and skips some actionability checks for performance.
+        Best for elements that are:
+        - Already visible on page load
+        - Not animated or moving
+        - Stable navigation elements (sidebars, menus, etc.)
+
+        Performance optimizations:
+        - Shorter timeout (default 5s vs 90s)
+        - no_wait_after=True (doesn't wait for navigation/network)
+        - Force option available if needed
+
+        Follows Single Responsibility: optimized for fast, stable clicks only.
+
+        :param str locator: Element locator
+        :param int timeout: Timeout in milliseconds (default 5000ms = 5s)
+        :return: bool: True if click succeeds
+        """
+        import logging
+        import time
+
+        logger = logging.getLogger(__name__)
+
+        start_time = time.time()
+        logger.info(f"[FAST CLICK] Starting fast click for locator: {locator} with timeout: {timeout}ms")
+
+        try:
+            loc = self.page.locator(locator)
+
+            # Quick visibility check first with short timeout
+            visibility_start = time.time()
+            await loc.wait_for(state="visible", timeout=timeout)
+            visibility_elapsed = (time.time() - visibility_start) * 1000
+            logger.info(f"[FAST CLICK] Element visible after {visibility_elapsed:.0f}ms")
+
+            # Click with no_wait_after for speed (navigation elements don't need wait)
+            click_start = time.time()
+            await loc.click(timeout=timeout, no_wait_after=True)
+            click_elapsed = (time.time() - click_start) * 1000
+
+            total_elapsed = (time.time() - start_time) * 1000
+            logger.info(
+                f"[FAST CLICK] SUCCESS - Click completed in {click_elapsed:.0f}ms, total: {total_elapsed:.0f}ms"
+            )
+            return True
+        except Exception as e:
+            elapsed = (time.time() - start_time) * 1000
+            logger.warning(
+                f"[FAST CLICK] FAILED after {elapsed:.0f}ms - {type(e).__name__}: {str(e)}. "
+                f"Falling back to regular click with {self.default_timeout}ms timeout"
+            )
+            # Fallback to regular click if fast click fails
+            fallback_start = time.time()
+            result = await self.click_element(locator, timeout=self.default_timeout)
+            fallback_elapsed = (time.time() - fallback_start) * 1000
+            logger.warning(f"[FAST CLICK] Fallback click took {fallback_elapsed:.0f}ms")
+            return result
+
     async def fill_input(self, locator: str, value: str, timeout: Optional[int] = None) -> bool:
         """
         Uses locator.fill(value) to fill an input element. Waits up to the specified timeout (or
