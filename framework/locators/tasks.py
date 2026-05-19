@@ -27,7 +27,7 @@ class TasksBasePageLocators:
 
     # Data load checks
     DATA_GRID = "table.ReactVirtualized__VirtualGrid"
-    NO_DATA_MESSAGE = "#no-resource-msg"
+    NO_DATA_MESSAGE = '#no-resource-msg, div.pf-v6-c-empty-state__body:has-text("Not found")'
 
 
 class TasksPageLocators:
