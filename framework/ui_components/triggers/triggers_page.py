@@ -1,9 +1,9 @@
 from playwright.async_api import Page
 
 from framework.config.config import Config
+from framework.locators.triggers import TriggersPageLocators
 from framework.ui_components.base_page import BasePage
 from framework.ui_components.console_url_patterns import TRIGGERS_URL
-from framework.ui_components.locators import TriggersPageLocators
 
 
 class TriggersPage(BasePage):

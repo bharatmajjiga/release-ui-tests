@@ -1,0 +1,117 @@
+"""
+Navigation Test Steps.
+
+This module contains BDD step definitions for left navigation bar interactions
+and high-level navigation to main sections (Pipelines, Tasks, Triggers, Overview).
+Follows Single Responsibility Principle - handles only navigation-related steps.
+"""
+
+import asyncio
+from typing import Any, Dict
+
+from pytest_bdd import given, parsers, then, when
+
+from framework.fixtures.async_bridge import run_async
+
+
+@given("Validate Pipelines button is visible in the left navigation bar")
+@when("Validate Pipelines button is visible in the left navigation bar")
+@then("Validate Pipelines button is visible in the left navigation bar")
+def validate_pipelines_button_visible(page: Dict[str, Any], playwright_event_loop: asyncio.AbstractEventLoop) -> None:
+    """
+    step for validating that the Pipelines button is visible in the left navigation bar.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :return: None: Raises AssertionError if Pipelines button is not visible, TimeoutError if operations timeout.
+    """
+    assert run_async(playwright_event_loop, page["nav"].verify_pipelines_button_visible()), (
+        "Pipelines button is not visible in left navigation bar."
+    )
+
+
+@given("the user clicks on Pipelines button")
+@when("the user clicks on Pipelines button")
+def user_navigates_to_pipelines_section(page: Dict[str, Any], playwright_event_loop: asyncio.AbstractEventLoop) -> None:
+    """
+    step for navigating to the Pipelines section.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :return: None: Raises TimeoutError if navigation elements are not clickable within the timeout.
+    """
+    assert run_async(playwright_event_loop, page["nav"].click_pipelines_button())
+
+
+@when("the user navigates to the Pipelines page")
+@then("the user navigates to the Pipelines page")
+def user_navigates_to_pipelines(page: Dict[str, Any], playwright_event_loop: asyncio.AbstractEventLoop) -> None:
+    """
+    step for navigating to the Pipelines page and verifying successful navigation.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :return: None: Raises TimeoutError if navigation elements are not clickable within the timeout.
+    Raises AssertionError if navigation verification fails.
+    """
+    assert run_async(playwright_event_loop, page["nav"].navigate_to_pipelines()), (
+        "Failed to navigate to Pipelines page."
+    )
+    assert run_async(playwright_event_loop, page["pipelines"].list.verify_on_page()), (
+        "Pipelines page verification failed."
+    )
+    assert run_async(playwright_event_loop, page["pipelines"].list.verify_data_load(tab_name="Pipelines tab"))
+
+
+@when("the user navigates to the Overview page")
+@then("the user navigates to the Overview page")
+def user_navigates_to_overview(page: Dict[str, Any], playwright_event_loop: asyncio.AbstractEventLoop) -> None:
+    """
+    step for navigating to the Pipelines Overview page and verifying successful navigation.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :return: None: Raises TimeoutError if navigation elements are not clickable within the timeout.
+    Raises AssertionError if navigation verification fails.
+    """
+    assert run_async(playwright_event_loop, page["nav"].navigate_to_overview()), "Failed to navigate to Overview page."
+    assert run_async(playwright_event_loop, page["pipelines"].overview.verify_on_page()), (
+        "Pipelines Overview page verification failed."
+    )
+
+
+@when("the user navigates to the Tasks page")
+@then("the user navigates to the Tasks page")
+def user_navigates_to_tasks(page: Dict[str, Any], playwright_event_loop: asyncio.AbstractEventLoop) -> None:
+    """
+    step for navigating to the Tasks page and verifying successful navigation.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :return: None: Raises TimeoutError if navigation elements are not clickable within the timeout.
+    Raises AssertionError if navigation verification fails.
+    """
+    assert run_async(playwright_event_loop, page["nav"].navigate_to_tasks()), "Failed to navigate to Tasks page."
+    assert run_async(playwright_event_loop, page["tasks"].list.verify_on_page()), "Tasks page verification failed."
+    assert run_async(playwright_event_loop, page["tasks"].list.verify_data_load(tab_name="Tasks tab"))
+
+
+@when("the user navigates to the Triggers page")
+@then("the user navigates to the Triggers page")
+def user_navigates_to_triggers(page: Dict[str, Any], playwright_event_loop: asyncio.AbstractEventLoop) -> None:
+    """
+    step for navigating to the Triggers page and verifying successful navigation.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :return: None: Raises TimeoutError if navigation elements are not clickable within the timeout.
+    Raises AssertionError if navigation verification fails.
+    """
+    assert run_async(playwright_event_loop, page["nav"].navigate_to_triggers()), "Failed to navigate to Triggers page."
+    assert run_async(playwright_event_loop, page["triggers"].list.verify_on_page()), (
+        "Triggers page verification failed."
+    )
+    assert run_async(playwright_event_loop, page["triggers"].list.verify_data_load(tab_name="Triggers tab"))
+
+
+@then(parsers.parse("Verify the following {links} are available under Pipelines button"))
+def verify_links_available_under_pipelines_button(
+    page: Dict[str, Any], links: str, playwright_event_loop: asyncio.AbstractEventLoop
+) -> None:
+    """
+    step for verifying that a specific link is available under the Pipelines button in the left navigation bar.
+    :param Dict[str, Any] page: Dictionary containing Page Object instances (from page fixture).
+    :param str links: The name of the link to verify (e.g., "Overview", "Pipelines", "Tasks", "Triggers").
+    :return: None: Raises AssertionError if the link is not visible or if an invalid link name is provided.
+    """
+    assert run_async(playwright_event_loop, page["nav"].verify_link_available_under_pipelines_button(links)), (
+        f"Link '{links}' is not available under Pipelines button."
+    )

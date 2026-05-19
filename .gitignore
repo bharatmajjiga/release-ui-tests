@@ -16,6 +16,15 @@ dist/
 # Agent logs files
 exec/
 
+# Ignore all files with the .md extension
+*.md
+
+# Exception for readme.md (the ! prefix negates the ignore rule)
+!readme.md
+
+# temp files
+tmp/
+
 # Compiled Java class files
 *.class
 
@@ -49,6 +58,9 @@ Thumbs.db
 *.exe
 *.war
 
+# media files
+*.png
+
 # Large media files
 *.mp4
 *.tiff
@@ -57,6 +69,8 @@ Thumbs.db
 *.mov
 *.wmv
 
+# MCP files
+.playwright-mcp/
 
 release-ui-tests.egg-info/
 build/

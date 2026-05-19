@@ -1,8 +1,8 @@
 from playwright.async_api import Page
 
 from framework.config.config import Config
+from framework.locators.commons import LeftNavigationBarLocators
 from framework.ui_components.base_page import BasePage
-from framework.ui_components.locators import LeftNavigationBarLocators
 
 
 class LeftNavigationBar(BasePage):
