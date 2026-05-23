@@ -16,3 +16,11 @@ spec:
             script: |
               #!/bin/bash
               echo "Hello from updated pipeline!"
+    - name: farewell
+      taskSpec:
+        steps:
+          - name: say-goodbye
+            image: registry.redhat.io/ubi9/ubi-minimal
+            script: |
+              #!/bin/bash
+              echo "Goodbye from updated pipeline!"

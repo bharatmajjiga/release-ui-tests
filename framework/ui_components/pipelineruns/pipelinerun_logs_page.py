@@ -341,6 +341,35 @@ class PipelineRunLogsPage(PipelineRunBasePage):
         except Exception:
             return await self.is_logs_container_visible()
 
+    async def wait_for_all_tasks_to_complete(self, timeout: int = 180000, poll_interval: int = 5000) -> bool:
+        """
+        Waits for all tasks to complete (reach 'success' or 'failed' status).
+        Polls task statuses until all are complete or timeout is reached.
+        :param int timeout: Maximum time to wait in milliseconds (default: 180000ms).
+        :param int poll_interval: Time between status checks in milliseconds (default: 5000ms).
+        :return: bool: True if all tasks completed within timeout.
+        :raises TimeoutError: If tasks don't complete within timeout.
+        """
+        import asyncio
+
+        start_time = asyncio.get_event_loop().time()
+        end_time = start_time + (timeout / 1000)
+
+        while asyncio.get_event_loop().time() < end_time:
+            task_statuses = await self.get_all_task_statuses()
+            incomplete_tasks = {
+                name: status for name, status in task_statuses.items() if status not in ("success", "failed")
+            }
+
+            if not incomplete_tasks:
+                return True
+
+            await self.page.wait_for_timeout(poll_interval)
+
+        raise TimeoutError(
+            f"Tasks did not complete within {timeout}ms. Current statuses: {await self.get_all_task_statuses()}"
+        )
+
     async def validate_task_logs_contain_text(self, task_name: str, expected_text: str) -> bool:
         """
         Validates that logs for a specific task contain expected text.

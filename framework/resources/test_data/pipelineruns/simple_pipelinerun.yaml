@@ -3,5 +3,13 @@ kind: PipelineRun
 metadata:
   generateName: simple-pipelinerun-
 spec:
-  pipelineRef:
-    name: simple-pipeline
+  pipelineSpec:
+    tasks:
+      - name: greet
+        taskSpec:
+          steps:
+            - name: say-hello
+              image: registry.access.redhat.com/ubi9/ubi-minimal:latest
+              script: |
+                #!/bin/sh
+                echo "Hello from pipeline!"
