@@ -82,13 +82,31 @@ async def playwright_page(
 
     Uses ``browser.new_context`` directly because the plugin's ``new_context`` fixture is
     function-scoped and cannot be requested from module-scoped fixtures.
+
+    Cleanup is immediate and efficient - no delays after tests complete.
     """
     context = await browser.new_context(**browser_context_args)
     pw_page = await context.new_page()
     try:
         yield pw_page
     finally:
-        await context.close()
+        # Aggressive immediate cleanup to prevent browser hanging open
+        # Close page first (visible window), then context (underlying resources)
+        import asyncio
+
+        try:
+            # Close page with short timeout to prevent hanging
+            await asyncio.wait_for(pw_page.close(), timeout=5.0)
+        except (asyncio.TimeoutError, Exception):
+            # Force close if taking too long
+            pass
+
+        try:
+            # Close context with timeout
+            await asyncio.wait_for(context.close(), timeout=5.0)
+        except (asyncio.TimeoutError, Exception):
+            # Force close if taking too long
+            pass
 
 
 @pytest_asyncio.fixture(scope="module", loop_scope="session")

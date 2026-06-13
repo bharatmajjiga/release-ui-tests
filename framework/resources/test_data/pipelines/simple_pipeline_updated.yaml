@@ -12,15 +12,15 @@ spec:
       taskSpec:
         steps:
           - name: say-hello
-            image: registry.redhat.io/ubi9/ubi-minimal
+            image: registry.access.redhat.com/ubi9/ubi-minimal:latest
             script: |
-              #!/bin/bash
-              echo "Hello from updated pipeline!"
+              #!/bin/sh
+              echo "Hello from pipeline!"
     - name: farewell
       taskSpec:
         steps:
           - name: say-goodbye
-            image: registry.redhat.io/ubi9/ubi-minimal
+            image: registry.access.redhat.com/ubi9/ubi-minimal:latest
             script: |
-              #!/bin/bash
-              echo "Goodbye from updated pipeline!"
+              #!/bin/sh
+              echo "Goodbye from pipeline!"

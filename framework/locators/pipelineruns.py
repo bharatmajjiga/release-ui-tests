@@ -134,12 +134,14 @@ class PipelineRunLogsPageLocators:
     LOG_WINDOW = "div.log-window"
 
     # Task status indicators in navigation
-    # Task status is indicated by color of the div containing the SVG
-    # Success: green rgb(56, 129, 47), Failure: red, Running: blue, etc.
-    TASK_SUCCESS_ICON = 'div[style*="rgb(56, 129, 47)"]'  # Green color for success
-    TASK_FAILURE_ICON = 'div[style*="rgb(201, 25, 11)"]'  # Red color for failure
-    TASK_RUNNING_ICON = 'div[style*="rgb(0, 102, 204)"]'  # Blue color for running
-    TASK_PENDING_ICON = 'div[style*="rgb(106, 110, 115)"]'  # Gray color for pending
+    # Using SVG path detection for stable element identification across theme changes
+    # SVG paths are more reliable than RGB colors which vary by theme/PatternFly version
+    # These paths correspond to PatternFly icons: CheckCircleIcon, ExclamationCircleIcon, etc.
+    # If PatternFly updates icon paths, update these selectors accordingly
+    TASK_SUCCESS_ICON = 'svg.pf-v5-svg path[d*="M504 256c0 136.967"]'  # CheckCircleIcon (success)
+    TASK_FAILURE_ICON = 'svg.pf-v5-svg path[d*="M256 8C119.043"]'  # ExclamationCircleIcon (failure)
+    TASK_RUNNING_ICON = 'svg.pf-v5-svg path[d*="M440.935"]'  # SyncAltIcon (running/in-progress)
+    TASK_PENDING_ICON = 'svg.pf-v5-svg path[d*="M256 8C119"]'  # PendingIcon (pending/queued)
 
     # Status badges/labels
     STATUS_LABEL = '[data-test="status-text"]'
