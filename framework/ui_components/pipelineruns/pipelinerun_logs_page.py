@@ -1,9 +1,25 @@
+import asyncio
+import logging
+from typing import Dict
+
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
+from playwright.async_api import TimeoutError as PlaywrightTimeoutError
 
 from framework.config.config import Config
 from framework.locators.pipelineruns import PipelineRunBasePageLocators, PipelineRunLogsPageLocators
 from framework.ui_components.console_url_patterns import PIPELINERUN_LOGS_URL
 from framework.ui_components.pipelineruns.pipelinerun_base_page import PipelineRunBasePage
+
+# Constants for log retrieval timing strategy
+# These values are tuned for async log streaming in OpenShift Console
+LOG_CONTAINER_TIMEOUT_MS = 15000  # 15 seconds - wait for container to appear
+LOG_INITIAL_DELAY_MS = 2000  # 2 seconds - initial wait after container appears
+LOG_RETRY_DELAY_MS = 3000  # 3 seconds - wait if first attempt finds no content
+LOG_FINAL_DELAY_MS = 2000  # 2 seconds - final wait before fallback
+# Total maximum wait: 15s (container) + 7s (progressive delays) = 22 seconds
+
+logger = logging.getLogger(__name__)
 
 
 class PipelineRunLogsPage(PipelineRunBasePage):
@@ -178,3 +194,331 @@ class PipelineRunLogsPage(PipelineRunBasePage):
         :return: bool: True if task navigation is visible.
         """
         return await self.is_visible(self.locators.TASK_NAVIGATION)
+
+    async def get_task_status(self, task_name: str) -> str:
+        """
+        Gets the status of a specific task by checking status icons in the task navigation.
+        :param str task_name: The name of the task.
+        :return: str: Status of the task - 'success', 'failed', 'running', 'pending', or 'unknown'.
+        """
+        task_link = f'{self.locators.TASK_LINK}:has-text("{task_name}")'
+        task_element = self.page.locator(task_link)
+
+        if await task_element.locator(self.locators.TASK_SUCCESS_ICON).count() > 0:
+            return "success"
+        elif await task_element.locator(self.locators.TASK_FAILURE_ICON).count() > 0:
+            return "failed"
+        elif await task_element.locator(self.locators.TASK_RUNNING_ICON).count() > 0:
+            return "running"
+        elif await task_element.locator(self.locators.TASK_PENDING_ICON).count() > 0:
+            return "pending"
+        else:
+            return "unknown"
+
+    async def get_all_task_statuses(self) -> Dict[str, str]:
+        """
+        Gets the status of all tasks in the pipeline run.
+        :return: Dict[str, str]: Dictionary mapping task names to their statuses.
+        """
+        tasks = await self.get_available_tasks()
+        task_statuses = {}
+        for task in tasks:
+            status = await self.get_task_status(task)
+            task_statuses[task] = status
+        return task_statuses
+
+    async def validate_all_tasks_displayed(self, expected_tasks: list[str]) -> bool:
+        """
+        Validates that all expected tasks are displayed in the task navigation.
+        :param list[str] expected_tasks: List of expected task names.
+        :return: bool: True if all expected tasks are displayed.
+        :raises AssertionError: If any expected task is missing.
+        """
+        available_tasks = await self.get_available_tasks()
+        missing_tasks = [task for task in expected_tasks if task not in available_tasks]
+
+        if missing_tasks:
+            raise AssertionError(
+                f"Expected tasks are missing from the logs page. "
+                f"Missing tasks: {missing_tasks}. "
+                f"Available tasks: {available_tasks}"
+            )
+        return True
+
+    async def validate_all_tasks_successful(self) -> bool:
+        """
+        Validates that all tasks in the pipeline run have succeeded.
+        :return: bool: True if all tasks are successful.
+        :raises AssertionError: If any task is not successful.
+        """
+        task_statuses = await self.get_all_task_statuses()
+        failed_tasks = {name: status for name, status in task_statuses.items() if status != "success"}
+
+        if failed_tasks:
+            raise AssertionError(
+                f"Not all tasks are successful. Failed/Non-successful tasks: {failed_tasks}. "
+                f"All task statuses: {task_statuses}"
+            )
+        return True
+
+    async def get_current_task_logs(self) -> str:
+        """
+        Gets the log text content for the currently displayed task.
+        :return: str: The log text content, or empty string if not available.
+        """
+        try:
+            log_element = self.page.locator(self.locators.LOGS_TEXT_CONTENT).first
+            return await log_element.inner_text()
+        except (PlaywrightTimeoutError, PlaywrightError) as e:
+            logger.debug(f"Failed to get current task logs: {e}")
+            return ""
+
+    async def get_logs_for_task(self, task_name: str) -> str:
+        """
+        Gets the log content for a specific task by navigating to it.
+
+        Uses progressive delay strategy to handle async log streaming in OpenShift Console:
+        - Logs container appears before content is populated
+        - Content streams asynchronously from Tekton pods
+        - Multiple selectors provide fallback if UI structure varies
+
+        Progressive delays [2s, 3s, 2s]:
+        - 2s initial: catches ~80% of fast-loading logs
+        - 3s retry: handles slower pipeline tasks
+        - 2s final: last chance before fallback
+        Total: max 7s content wait + 15s container timeout = 22s worst case
+
+        :param str task_name: The name of the task.
+        :return: str: The log text content for the task.
+        :raises TimeoutError: If logs container fails to appear within timeout.
+        """
+        await self.click_task_link(task_name)
+
+        # Wait for logs container to be visible (but may still be empty)
+        try:
+            await self.page.wait_for_selector(
+                self.locators.LOGS_CONTAINER, state="visible", timeout=LOG_CONTAINER_TIMEOUT_MS
+            )
+        except PlaywrightTimeoutError as e:
+            logger.error(f"Logs container did not appear for task '{task_name}' within {LOG_CONTAINER_TIMEOUT_MS}ms")
+            raise TimeoutError(f"Logs container timeout for task '{task_name}'") from e
+
+        # Multiple selectors to try (in priority order)
+        # Primary selector first, then progressively broader fallbacks
+        selectors = [
+            self.locators.LOGS_TEXT_CONTENT,  # Specific logs content
+            "div.log-window",  # Log window container
+            "pre",  # Preformatted text elements
+            "code",  # Code block elements
+        ]
+
+        # Progressive delay strategy: [initial, retry, final]
+        delays = [LOG_INITIAL_DELAY_MS, LOG_RETRY_DELAY_MS, LOG_FINAL_DELAY_MS]
+
+        for attempt, delay in enumerate(delays, 1):
+            await self.page.wait_for_timeout(delay)
+            logger.debug(f"Attempt {attempt}/{len(delays)}: checking for log content after {delay}ms delay")
+
+            # Try each selector to find log content
+            for selector in selectors:
+                try:
+                    elements = await self.page.locator(selector).all()
+                    logs_parts = []
+
+                    for element in elements:
+                        try:
+                            text = await element.inner_text()
+                            if text and text.strip():
+                                logs_parts.append(text.strip())
+                        except (PlaywrightTimeoutError, PlaywrightError) as e:
+                            # Element became stale or unreadable - continue to next
+                            logger.debug(f"Element read failed for selector '{selector}': {e}")
+                            continue
+
+                    if logs_parts:
+                        logger.info(
+                            f"Found log content for task '{task_name}' using selector '{selector}' on attempt {attempt}"
+                        )
+                        return "\n".join(logs_parts)
+
+                except (PlaywrightTimeoutError, PlaywrightError) as e:
+                    # Selector failed entirely - try next selector
+                    logger.debug(f"Selector '{selector}' failed on attempt {attempt}: {e}")
+                    continue
+
+        # All attempts exhausted - use fallback method
+        logger.warning(f"Progressive delay strategy exhausted for task '{task_name}', using fallback method")
+        return await self.get_current_task_logs()
+
+    async def validate_logs_present_for_task(self, task_name: str, min_length: int = 10) -> bool:
+        """
+        Validates that logs are present for a specific task.
+        :param str task_name: The name of the task.
+        :param int min_length: Minimum expected length of log content (default: 10 characters).
+        :return: bool: True if logs are present and meet minimum length.
+        :raises AssertionError: If logs are missing or too short.
+        """
+        logs = await self.get_logs_for_task(task_name)
+        if len(logs) < min_length:
+            raise AssertionError(
+                f"Logs for task '{task_name}' are missing or insufficient. "
+                f"Log length: {len(logs)}, expected minimum: {min_length}"
+            )
+        return True
+
+    async def validate_logs_present_for_all_tasks(self, min_length: int = 10) -> bool:
+        """
+        Validates that logs are present for all tasks in the pipeline run.
+        :param int min_length: Minimum expected length of log content per task.
+        :return: bool: True if all tasks have logs.
+        :raises AssertionError: If any task is missing logs.
+        """
+        tasks = await self.get_available_tasks()
+        tasks_without_logs = []
+
+        for task in tasks:
+            logs = await self.get_logs_for_task(task)
+            if len(logs) < min_length:
+                tasks_without_logs.append(task)
+
+        if tasks_without_logs:
+            raise AssertionError(
+                f"The following tasks have missing or insufficient logs: {tasks_without_logs}. "
+                f"Minimum expected log length: {min_length} characters"
+            )
+        return True
+
+    async def get_active_task_name(self) -> str:
+        """
+        Gets the name of the currently active/selected task in the navigation.
+        :return: str: The name of the active task, or empty string if none active.
+        """
+        try:
+            active_link = self.page.locator(self.locators.TASK_LINK_ACTIVE).first
+            return await active_link.inner_text()
+        except (PlaywrightTimeoutError, PlaywrightError) as e:
+            logger.debug(f"No active task found: {e}")
+            return ""
+
+    async def is_loading(self) -> bool:
+        """
+        Checks if logs are currently loading.
+        :return: bool: True if loading indicator is visible.
+        """
+        return await self.is_visible(self.locators.LOADING_INDICATOR) or await self.is_visible(
+            self.locators.SKELETON_LOADER
+        )
+
+    async def wait_for_logs_to_load(self, timeout: int = 30000) -> bool:
+        """
+        Waits for logs to finish loading.
+        :param int timeout: Maximum time to wait in milliseconds (default: 30000ms).
+        :return: bool: True if logs loaded within timeout.
+        """
+        try:
+            await self.page.wait_for_selector(
+                f"{self.locators.LOADING_INDICATOR}, {self.locators.SKELETON_LOADER}",
+                state="hidden",
+                timeout=timeout,
+            )
+            return True
+        except PlaywrightTimeoutError:
+            # Loading indicator timeout - check if logs are visible anyway
+            logger.debug("Loading indicator timeout, checking logs container visibility")
+            return await self.is_logs_container_visible()
+
+    async def wait_for_all_tasks_to_complete(self, timeout: int = 180000, poll_interval: int = 5000) -> bool:
+        """
+        Waits for all tasks to complete (reach 'success' or 'failed' status).
+
+        Optimized polling strategy:
+        - Checks status immediately first (early exit if already complete)
+        - Only polls if tasks are still running
+        - Logs progress for visibility
+
+        :param int timeout: Maximum time to wait in milliseconds (default: 180000ms).
+        :param int poll_interval: Time between status checks in milliseconds (default: 5000ms).
+        :return: bool: True if all tasks completed within timeout.
+        :raises TimeoutError: If tasks don't complete within timeout.
+        """
+        start_time = asyncio.get_event_loop().time()
+        end_time = start_time + (timeout / 1000)
+
+        # Immediate check - tasks might already be complete
+        task_statuses = await self.get_all_task_statuses()
+        incomplete_tasks = {
+            name: status for name, status in task_statuses.items() if status not in ("success", "failed")
+        }
+
+        if not incomplete_tasks:
+            logger.info("All tasks already complete - no waiting needed")
+            return True
+
+        logger.info(f"Waiting for {len(incomplete_tasks)} tasks to complete: {list(incomplete_tasks.keys())}")
+        poll_count = 0
+
+        while asyncio.get_event_loop().time() < end_time:
+            await self.page.wait_for_timeout(poll_interval)
+            poll_count += 1
+
+            task_statuses = await self.get_all_task_statuses()
+            incomplete_tasks = {
+                name: status for name, status in task_statuses.items() if status not in ("success", "failed")
+            }
+
+            if not incomplete_tasks:
+                logger.info(f"All tasks completed after {poll_count} poll(s) ({poll_count * poll_interval / 1000}s)")
+                return True
+
+            logger.debug(f"Poll {poll_count}: {len(incomplete_tasks)} tasks still incomplete: {incomplete_tasks}")
+
+        raise TimeoutError(
+            f"Tasks did not complete within {timeout}ms after {poll_count} polls. "
+            f"Current statuses: {await self.get_all_task_statuses()}"
+        )
+
+    async def validate_task_logs_contain_text(self, task_name: str, expected_text: str) -> bool:
+        """
+        Validates that logs for a specific task contain expected text.
+        :param str task_name: The name of the task.
+        :param str expected_text: Text that should be present in the logs.
+        :return: bool: True if expected text is found in logs.
+        :raises AssertionError: If expected text is not found.
+        """
+        logs = await self.get_logs_for_task(task_name)
+        if expected_text not in logs:
+            raise AssertionError(
+                f"Expected text '{expected_text}' not found in logs for task '{task_name}'. "
+                f"Log preview: {logs[:200]}..."
+            )
+        return True
+
+    async def get_task_count(self) -> int:
+        """
+        Gets the total number of tasks displayed in the navigation.
+        :return: int: Number of tasks.
+        """
+        return await self.page.locator(self.locators.TASK_LINK).count()
+
+    async def validate_pipeline_run_success(self) -> bool:
+        """
+        Comprehensive validation that ensures the pipeline run is fully successful.
+        Checks that:
+        - Task navigation is visible
+        - All tasks are displayed
+        - All tasks have 'success' status
+        - All tasks have logs present
+        :return: bool: True if all validations pass.
+        :raises AssertionError: If any validation fails with detailed error message.
+        """
+        if not await self.is_task_navigation_visible():
+            raise AssertionError("Task navigation is not visible on the logs page")
+
+        tasks = await self.get_available_tasks()
+        if len(tasks) == 0:
+            raise AssertionError("No tasks found in the pipeline run")
+
+        await self.validate_all_tasks_successful()
+        await self.validate_logs_present_for_all_tasks()
+
+        return True

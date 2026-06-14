@@ -117,6 +117,7 @@ class PipelineRunLogsPageLocators:
     # Task navigation
     TASK_NAVIGATION = 'nav[aria-label="Global"]'
     TASK_LINK = 'nav[aria-label="Global"] a'
+    TASK_LINK_ACTIVE = 'nav[aria-label="Global"] a.pf-m-current'
 
     # Logs toolbar buttons
     DOWNLOAD_BUTTON = 'button:has-text("Download"):not(:has-text("all"))'
@@ -124,7 +125,41 @@ class PipelineRunLogsPageLocators:
     EXPAND_BUTTON = 'button:has-text("Expand")'
 
     # Logs content area
-    LOGS_CONTAINER = 'div:has(> div:has-text("STEP-"))'
+    LOGS_CONTAINER = 'div[data-test-id="logs-task-container"]'
+    # Logs are in divs within the multi-stream logs component
+    # Try multiple selectors to find log content
+    LOGS_TEXT_CONTENT = (
+        "div.odc-multi-stream-logs__logviewer, div.odc-multi-stream-logs, div.odc-pipeline-run-logs__container"
+    )
+    LOG_WINDOW = "div.log-window"
+
+    # Task status indicators in navigation
+    # Using SVG path detection for stable element identification across theme changes
+    # SVG paths are more reliable than RGB colors which vary by theme/PatternFly version
+    # These paths correspond to PatternFly icons: CheckCircleIcon, ExclamationCircleIcon, etc.
+    # If PatternFly updates icon paths, update these selectors accordingly
+    TASK_SUCCESS_ICON = 'svg.pf-v5-svg path[d*="M504 256c0 136.967"]'  # CheckCircleIcon (success)
+    TASK_FAILURE_ICON = 'svg.pf-v5-svg path[d*="M256 8C119.043"]'  # ExclamationCircleIcon (failure)
+    TASK_RUNNING_ICON = 'svg.pf-v5-svg path[d*="M440.935"]'  # SyncAltIcon (running/in-progress)
+    TASK_PENDING_ICON = 'svg.pf-v5-svg path[d*="M256 8C119"]'  # PendingIcon (pending/queued)
+
+    # Status badges/labels
+    STATUS_LABEL = '[data-test="status-text"]'
+    SUCCESS_STATUS = '[data-test="status-text"]:has-text("Succeeded")'
+    FAILED_STATUS = '[data-test="status-text"]:has-text("Failed")'
+    RUNNING_STATUS = '[data-test="status-text"]:has-text("Running")'
+
+    # Step information
+    STEP_HEADER = 'div:has-text("STEP-")'
+    STEP_CONTAINER = 'div[class*="step"]'
+
+    # Loading states
+    LOADING_INDICATOR = '[data-test="loading-indicator"]'
+    SKELETON_LOADER = ".pf-c-skeleton"
+
+    # Empty/No data states
+    NO_LOGS_MESSAGE = 'text="No logs available"'
+    NO_TASKS_MESSAGE = 'text="No tasks found"'
 
 
 class PipelineRunTaskRunsPageLocators:
