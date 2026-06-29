@@ -28,7 +28,7 @@ class TasksBasePageLocators:
     DELETE_TASK_MENU_ITEM = 'role=menuitem[name="Delete Task"]'
 
     # Data load checks
-    DATA_GRID = "table.ReactVirtualized__VirtualGrid"
+    DATA_GRID = '[role="grid"]'
     NO_DATA_MESSAGE = '#no-resource-msg, div.pf-v6-c-empty-state__body:has-text("Not found")'
 
 

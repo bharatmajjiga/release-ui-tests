@@ -28,7 +28,7 @@ class PipelinesBasePageLocators:
     KEBAB_MENU_BUTTON = 'button[aria-label="kebab menu"]'
 
     # Data load checks
-    DATA_GRID = "table.ReactVirtualized__VirtualGrid"
+    DATA_GRID = '[role="grid"]'
     NO_DATA_MESSAGE = "#no-resource-msg"
 
 
@@ -296,4 +296,4 @@ class PipelinePipelineRunsTabPageLocators:
     KEBAB_MENU_BUTTON = 'button[aria-label="kebab menu"]'
 
     # Data load checks
-    DATA_GRID = "table.ReactVirtualized__VirtualGrid"
+    DATA_GRID = '[role="grid"]'

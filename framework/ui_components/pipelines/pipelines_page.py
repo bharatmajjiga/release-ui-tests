@@ -130,14 +130,16 @@ class PipelinesPage(PipelinesBasePage):
         """
         return await self.click_element(self.base_locators.CREATE_PIPELINE_MENU_ITEM)
 
-    async def verify_pipeline_in_list(self, pipeline_name: str) -> bool:
+    async def verify_pipeline_in_list(self, pipeline_name: str, timeout: int = 30000) -> bool:
         """
         Verify that a pipeline with the given name appears in the pipelines list.
+        Uses longer timeout to allow for API sync delays.
         :param str pipeline_name: Name of the pipeline to verify
+        :param int timeout: Timeout in milliseconds (default 30s)
         :return: bool: True if pipeline row is visible
         """
         locator = self.locators.PIPELINE_ROW_BY_NAME.format(pipeline_name=pipeline_name)
-        return await self.is_visible(locator, timeout=5000)
+        return await self.is_visible(locator, timeout=timeout)
 
     async def verify_pipeline_not_in_list(self, pipeline_name: str) -> bool:
         """

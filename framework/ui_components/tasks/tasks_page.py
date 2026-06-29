@@ -71,15 +71,20 @@ class TasksPage(TasksBasePage):
         """
         return await self.click_element(self.base_locators.DELETE_TASK_MENU_ITEM)
 
-    async def verify_task_in_list(self, task_name: str) -> bool:
+    async def verify_task_in_list(self, task_name: str, timeout: int = None) -> bool:
         """
         Verify that a task with the given name appears in the task list.
+        Uses longer timeout to allow for API sync delays.
 
         :param str task_name: Name of the task to verify
+        :param int timeout: Timeout in milliseconds (default from config, typically 90s)
         :return: bool: True if task row is visible
         """
+        if timeout is None:
+            timeout = self.config.timeout_ms
+
         locator = self.locators.TASK_ROW_BY_NAME.format(task_name=task_name)
-        return await self.is_visible(locator, timeout=self.config.timeout_ms)
+        return await self.is_visible(locator, timeout=timeout)
 
     async def verify_task_not_in_list(self, task_name: str) -> bool:
         """

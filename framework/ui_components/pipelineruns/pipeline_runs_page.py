@@ -76,15 +76,17 @@ class PipelineRunsPage(PipelinesBasePage):
         """
         return await self.verify_data_load(tab_name="PipelineRuns tab")
 
-    async def verify_pipelinerun_in_list(self, pipelinerun_name: str) -> bool:
+    async def verify_pipelinerun_in_list(self, pipelinerun_name: str, timeout: int = 30000) -> bool:
         """
         Verify that a PipelineRun with the given name appears in the PipelineRuns list.
+        Uses longer timeout to allow for API sync delays.
         Supports partial name matching for generateName resources (e.g., "simple-pipelinerun-").
         :param str pipelinerun_name: Name or name prefix of the PipelineRun to verify
+        :param int timeout: Timeout in milliseconds (default 30s)
         :return: bool: True if PipelineRun row is visible
         """
         locator = self.locators.PIPELINERUN_ROW_BY_NAME.format(pipelinerun_name=pipelinerun_name)
-        return await self.is_visible(locator, timeout=5000)
+        return await self.is_visible(locator, timeout=timeout)
 
     async def verify_pipelinerun_not_in_list(self, pipelinerun_name: str) -> bool:
         """

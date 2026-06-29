@@ -184,4 +184,4 @@ class PipelineRunTaskRunsPageLocators:
     KEBAB_MENU_BUTTON = 'button[aria-label="kebab menu"]'
 
     # Data load checks
-    DATA_GRID = "table.ReactVirtualized__VirtualGrid"
+    DATA_GRID = '[role="grid"]'

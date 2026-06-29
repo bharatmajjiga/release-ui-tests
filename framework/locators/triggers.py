@@ -26,7 +26,7 @@ class TriggersPageLocators:
         'a[href^="/triggers/all-namespaces/"][href$="/cluster-trigger-bindings"], '
         'a[href^="/triggers/ns/"][href$="/cluster-trigger-bindings"]'
     )
-    TRIGGERS_DATA_LOAD_CHECK = "table.ReactVirtualized__VirtualGrid"
+    TRIGGERS_DATA_LOAD_CHECK = '[role="grid"]'
     TRIGGERS_NO_DATA_LOAD_CHECK = "#no-resource-msg"
 
 
