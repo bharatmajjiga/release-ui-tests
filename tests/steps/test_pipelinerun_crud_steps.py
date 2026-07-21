@@ -38,7 +38,10 @@ def validate_pipelinerun_details(
         await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the PipelineRun details page
-        on_page = await page["pipelines"].pipelinerun.details.verify_on_page()
+        on_page = (
+            await page["pipelines"].pipelinerun.details.verify_on_page()
+            and await page["pipelines"].pipelinerun.details.verify_pipelinerun_details_sub_heading()
+        )
         assert on_page, f"Failed to navigate to PipelineRun details page for '{pipelinerun_name}'"
 
     run_async(playwright_event_loop, _step())

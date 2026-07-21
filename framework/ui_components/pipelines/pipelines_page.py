@@ -164,7 +164,8 @@ class PipelinesPage(PipelinesBasePage):
 
             # Within that row, find and click the kebab menu button
             kebab_in_row = f"{row_locator} >> {self.base_locators.KEBAB_MENU_BUTTON}"
-            return await self.click_element(kebab_in_row)
+            await self.click_element(kebab_in_row)
+            return True
         except Exception as e:
             logger.error(f"Failed to click kebab menu for pipeline '{pipeline_name}': {e}")
             return False

@@ -150,7 +150,10 @@ def validate_taskrun_details(
         await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the TaskRun details page
-        on_page = await page["tasks"].taskrun.details.verify_on_page()
+        on_page = (
+            await page["tasks"].taskrun.details.verify_on_page()
+            and await page["tasks"].taskrun.details.verify_taskrun_details_sub_heading()
+        )
         assert on_page, f"Failed to navigate to TaskRun details page for '{taskrun_name}'"
 
     run_async(playwright_event_loop, _step())
