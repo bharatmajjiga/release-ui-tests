@@ -10,9 +10,9 @@ class PipelinesBasePageLocators:
 
     # Create actions
     CREATE_BUTTON = 'button:has-text("Create")'
-    CREATE_PIPELINE_MENU_ITEM = 'role=menuitem[name="Pipeline"]'
-    CREATE_PIPELINE_RUN_MENU_ITEM = 'role=menuitem[name="PipelineRun"]'
-    CREATE_REPOSITORY_MENU_ITEM = 'role=menuitem[name="Repository"]'
+    CREATE_PIPELINE_MENU_ITEM = "#pipeline-link"
+    CREATE_PIPELINE_RUN_MENU_ITEM = "#pipelineRun-link"
+    CREATE_REPOSITORY_MENU_ITEM = "#repository-link"
 
     # Tab navigation
     PIPELINES_TAB = 'a[href^="/pipelines/ns/"]'
@@ -25,11 +25,11 @@ class PipelinesBasePageLocators:
     CLEAR_ALL_FILTERS_BUTTON = 'button:has-text("Clear all filters")'
 
     # Row actions
-    KEBAB_MENU_BUTTON = 'button[aria-label="kebab menu"]'
+    KEBAB_MENU_BUTTON = 'button[aria-label="Actions"]'
 
     # Data load checks
     DATA_GRID = "table.ReactVirtualized__VirtualGrid"
-    NO_DATA_MESSAGE = "#no-resource-msg"
+    NO_DATA_MESSAGE = 'div[data-test="empty-message"]'
 
 
 class PipelinesPageLocators:
@@ -47,17 +47,19 @@ class PipelinesPageLocators:
     VIEW_LOGS_BUTTON = 'button:has-text("View logs")'
 
     # Kebab menu items (Pipeline-specific)
-    START_MENU_ITEM = 'role=menuitem[name="Start"]'
-    START_LAST_RUN_MENU_ITEM = 'role=menuitem[name="Start last run"]'
-    ADD_TRIGGER_MENU_ITEM = 'role=menuitem[name="Add Trigger"]'
-    REMOVE_TRIGGER_MENU_ITEM = 'role=menuitem[name="Remove Trigger"]'
-    EDIT_LABELS_MENU_ITEM = 'role=menuitem[name="Edit labels"]'
-    EDIT_ANNOTATIONS_MENU_ITEM = 'role=menuitem[name="Edit annotations"]'
-    EDIT_PIPELINE_MENU_ITEM = 'role=menuitem[name="Edit Pipeline"]'
-    DELETE_PIPELINE_MENU_ITEM = 'role=menuitem[name="Delete Pipeline"]'
+    START_MENU_ITEM = 'button[data-test-action="Start"]'
+    START_LAST_RUN_MENU_ITEM = 'button[data-test-action="Start last run"]'
+    ADD_TRIGGER_MENU_ITEM = 'button[data-test-action="Add Trigger"]'
+    REMOVE_TRIGGER_MENU_ITEM = 'button[data-test-action="Remove Trigger"]'
+    EDIT_LABELS_MENU_ITEM = 'button[data-test-action="Edit labels"]'
+    EDIT_ANNOTATIONS_MENU_ITEM = 'button[data-test-action="Edit annotations"]'
+    EDIT_PIPELINE_MENU_ITEM = 'button[data-test-action="Edit Pipeline"]'
+    DELETE_PIPELINE_MENU_ITEM = 'button[data-test-action="Delete Pipeline"]'
 
     # Pipeline row verification
-    PIPELINE_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{pipeline_name}")'
+    PIPELINE_ROW_BY_NAME = (
+        'tr[data-test-rows="resource-row"]:has(a[class="co-resource-item__resource-name"]:has-text("{pipeline_name}"))'
+    )
 
 
 class PipelineRunsPageLocators:
@@ -78,7 +80,7 @@ class PipelineRunsPageLocators:
     # Row verification and actions
     PIPELINERUN_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{pipelinerun_name}")'
     PIPELINERUN_STATUS_CELL = 'tr:has-text("{pipelinerun_name}") td.pf-v5-c-table__td:nth-child(3)'
-    DELETE_PIPELINERUN_MENU_ITEM = 'role=menuitem[name="Delete PipelineRun"]'
+    DELETE_PIPELINERUN_MENU_ITEM = 'button[data-test-action="Delete PipelineRun"]'
 
 
 class RepositoriesPageLocators:
@@ -93,7 +95,7 @@ class PipelineBuilderPageLocators:
     """Common locators for Pipeline Builder page (shared across both views)."""
 
     # Page header
-    PIPELINE_BUILDER_HEADER = 'h2:has-text("Pipeline builder")'
+    PIPELINE_BUILDER_HEADER = 'h1:has-text("Pipeline builder")'
 
     # Configuration mode switcher
     PIPELINE_BUILDER_RADIO = 'input[type="radio"] + label:has-text("Pipeline builder")'
@@ -173,7 +175,7 @@ class PipelineDetailsPageLocators:
     BREADCRUMB_PIPELINE_DETAILS_TEXT = 'nav[aria-label="Breadcrumb"] >> text="Pipeline details"'
 
     # Page header
-    PIPELINE_NAME_HEADING = "h1"
+    PIPELINE_NAME_HEADING = 'span[data-test-id="resource-title"]'
 
     # Tabs
     DETAILS_TAB = 'role=tab[name="Details"]'

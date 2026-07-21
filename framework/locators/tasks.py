@@ -8,9 +8,9 @@ class TasksBasePageLocators:
     TASKS_HEADER = 'h1:has-text("Tasks")'
 
     # Create actions
-    CREATE_BUTTON = '[data-test="item-create"]'
-    CREATE_TASK_MENU_ITEM = 'role=menuitem[name="Task"]'
-    CREATE_TASK_RUN_MENU_ITEM = 'role=menuitem[name="TaskRun"]'
+    CREATE_BUTTON = 'button:has-text("Create")'
+    CREATE_TASK_MENU_ITEM = "#tasks-link"
+    CREATE_TASK_RUN_MENU_ITEM = "#taskRun-link"
 
     # Tab navigation
     TASKS_TAB = 'a[href^="/tasks/all-namespaces"], a[href^="/tasks/ns/"]'
@@ -23,13 +23,13 @@ class TasksBasePageLocators:
     CLEAR_ALL_FILTERS_BUTTON = 'button:has-text("Clear all filters")'
 
     # Row actions
-    KEBAB_MENU_BUTTON = 'button[aria-label="kebab menu"]'
-    EDIT_TASK_MENU_ITEM = 'role=menuitem[name="Edit Task"]'
-    DELETE_TASK_MENU_ITEM = 'role=menuitem[name="Delete Task"]'
+    KEBAB_MENU_BUTTON = 'button[data-test-id="kebab-button"]'
+    EDIT_TASK_MENU_ITEM = 'button[data-test-action="Edit Task"]'
+    DELETE_TASK_MENU_ITEM = 'button[data-test-action="Delete Task"]'
 
     # Data load checks
     DATA_GRID = "table.ReactVirtualized__VirtualGrid"
-    NO_DATA_MESSAGE = '#no-resource-msg, div.pf-v6-c-empty-state__body:has-text("Not found")'
+    NO_DATA_MESSAGE = 'div[data-test="empty-message"], div.pf-v6-c-empty-state__body:has-text("Not found")'
 
 
 class TasksPageLocators:
@@ -42,7 +42,9 @@ class TasksPageLocators:
     ACTIONS_COLUMN_HEADER = 'role=columnheader[name="Actions"]'
 
     # Task row verification
-    TASK_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{task_name}")'
+    TASK_ROW_BY_NAME = (
+        'tr[data-test-rows="resource-row"]:has(a[class="co-resource-item__resource-name"]:has-text("{task_name}"))'
+    )
 
 
 class TaskRunsPageLocators:
@@ -57,9 +59,11 @@ class TaskRunsPageLocators:
     STARTED_COLUMN_HEADER = 'role=columnheader[name="Started"]'
     ACTIONS_COLUMN_HEADER = 'role=columnheader[name="Actions"]'
 
-    DELETE_TASKRUN_MENU_ITEM = 'role=menuitem[name="Delete TaskRun"]'
+    DELETE_TASKRUN_MENU_ITEM = 'button[data-test-action="Delete TaskRun"]'
     # TaskRun row verification
-    TASKRUN_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{taskrun_name}")'
+    TASKRUN_ROW_BY_NAME = (
+        'tr[data-test-rows="resource-row"]:has(a[class="co-resource-item__resource-name"]:has-text("{taskrun_name}"))'
+    )
 
 
 class CreateTaskPageLocators:
@@ -97,7 +101,7 @@ class TaskDetailsPageLocators:
     BREADCRUMB_TASK_DETAILS_LINK = 'nav[aria-label="Breadcrumb"] a:has-text("Task details")'
 
     # Page header
-    TASK_NAME_HEADING = "h1"
+    TASK_NAME_HEADING = 'span[data-test-id="resource-title"]'
 
     # Tabs
     DETAILS_TAB = 'role=tab[name="Details"]'
@@ -124,7 +128,7 @@ class TaskYamlPageLocators:
     YAML_TAB = 'role=tab[name="YAML"]'
 
     # YAML editor
-    YAML_EDITOR = ".monaco-editor"
+    YAML_EDITOR = ".yaml-editor"
 
     # Editor toolbar
     COPY_CODE_BUTTON = 'button[aria-label="Copy code to clipboard"]'
@@ -175,7 +179,7 @@ class TaskRunDetailsPageLocators:
     BREADCRUMB_TASKRUN_DETAILS_LINK = 'nav[aria-label="Breadcrumb"] a:has-text("TaskRun details")'
 
     # Page header
-    TASKRUN_NAME_HEADING = "div.taskrun-details-page"
+    TASKRUN_NAME_HEADING = 'span[data-test-id="resource-title"]'
 
     # Tabs
     DETAILS_TAB = 'role=tab[name="Details"]'
