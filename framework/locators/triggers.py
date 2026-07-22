@@ -27,7 +27,7 @@ class TriggersPageLocators:
         'a[href^="/triggers/ns/"][href$="/cluster-trigger-bindings"]'
     )
     TRIGGERS_DATA_LOAD_CHECK = "table.ReactVirtualized__VirtualGrid"
-    TRIGGERS_NO_DATA_LOAD_CHECK = 'div[data-test="empty-message"]'
+    TRIGGERS_NO_DATA_LOAD_CHECK = "#no-resource-msg"
 
 
 class CreateEventListenerPageLocators:

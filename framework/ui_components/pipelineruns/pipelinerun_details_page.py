@@ -29,12 +29,6 @@ class PipelineRunDetailsPage(PipelineRunBasePage):
             PIPELINERUN_DETAILS_URL, self.base_locators.PIPELINERUN_NAME_HEADING, "PipelineRun Details page"
         )
 
-    async def verify_pipelinerun_details_sub_heading(self) -> bool:
-
-        if not await self.is_visible(self.locators.PIPELINERUN_DETAILS_HEADING):
-            raise AssertionError("Pipeline run details page sub header is not loaded.")
-        return True
-
     async def get_pipelinerun_name(self) -> str:
         """
         Returns the PipelineRun name displayed in the h1 heading.

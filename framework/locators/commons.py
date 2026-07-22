@@ -4,7 +4,7 @@
 class LoginPageLocators:
     """Locators for the OpenShift Login Page"""
 
-    LOGIN_WITH_AUTH = "div.pf-c-login__main-body"
+    LOGIN_WITH_AUTH = "div.pf-v6-c-login__main-body"
     KUBE_ADMIN_AUTH_LINK = 'a:has-text("kube:admin")'
     HTPASSWD_AUTH_LINK = 'a:has-text("htpasswd")'
     USERNAME_INPUT = '[id="inputUsername"]'
