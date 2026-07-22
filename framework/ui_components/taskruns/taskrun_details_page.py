@@ -27,17 +27,6 @@ class TaskRunDetailsPage(BasePage):
             self.locators.TASKRUN_NAME_HEADING
         )
 
-    async def verify_taskrun_details_sub_heading(self) -> bool:
-        """
-        Verifies that the TaskRun Details page is currently displayed.
-        Checks the page sub heading is visible.
-
-        :return: bool: True if on TaskRun details page
-        """
-        if not await self.is_visible(self.locators.TASKRUN_DETAILS_HEADING):
-            raise AssertionError("Pipeline run details page sub header is not loaded.")
-        return True
-
     async def get_taskrun_name(self) -> str:
         """
         Extracts the TaskRun name from the page heading.
