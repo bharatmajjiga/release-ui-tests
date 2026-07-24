@@ -1,0 +1,21 @@
+FROM quay.io/fedora/fedora:44
+
+RUN dnf update -y &&\
+    dnf install -y --setopt=tsflags=nodocs git python-unversioned-command python3 python3-pip \
+        libxkbcommon alsa-lib atk at-spi2-atk cups-libs libdrm libXcomposite \
+        libXdamage libXrandr mesa-libgbm nss nss-util nspr pango libXfixes \
+        libXcursor libXext libXi libXtst libwayland-client libwayland-egl \
+        libwayland-server cairo dbus-libs expat libxcb wget && \
+    dnf clean all -y && rm -fR /var/cache/dnf
+
+ENV OC_VERSION=4.21
+RUN wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/fast-${OC_VERSION}/openshift-client-linux.tar.gz \
+    -O /tmp/openshift-client.tar.gz &&\
+    tar xzf /tmp/openshift-client.tar.gz -C /usr/bin oc &&\
+    rm /tmp/openshift-client.tar.gz
+
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
+
+RUN playwright install chromium

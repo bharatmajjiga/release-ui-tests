@@ -1,0 +1,14 @@
+# Using base image which has requirements (python3, playwright, chromium) installed
+# FROM quay.io/openshift-pipeline/ui-ci
+FROM ui-ci
+
+# Copy the tests into /tmp/release-ui-tests
+RUN mkdir /tmp/release-ui-tests
+WORKDIR /tmp/release-ui-tests
+COPY . .
+
+# Set required permissions for OpenShift usage
+RUN chgrp -R 0 /tmp && \
+    chmod -R g=u /tmp
+
+CMD ["/bin/bash"]
