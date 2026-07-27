@@ -1,0 +1,12 @@
+.git
+.github
+.claude
+.env
+*.png
+*.pdf
+*.md
+!requirements.txt
+docs/
+tmp/
+__pycache__/
+.pytest_cache/
