@@ -23,13 +23,13 @@ class TasksBasePageLocators:
     CLEAR_ALL_FILTERS_BUTTON = 'button:has-text("Clear all filters")'
 
     # Row actions
-    KEBAB_MENU_BUTTON = 'button[aria-label="Actions"]'
+    KEBAB_MENU_BUTTON = 'button[aria-label="kebab menu"]'
     EDIT_TASK_MENU_ITEM = 'role=menuitem[name="Edit Task"]'
     DELETE_TASK_MENU_ITEM = 'role=menuitem[name="Delete Task"]'
 
     # Data load checks
-    DATA_GRID = 'table[data-ouia-component-type="PF6/Table"]'
-    NO_DATA_MESSAGE = 'div[data-test="empty-box-body"], div.pf-v6-c-empty-state__body:has-text("Not found")'
+    DATA_GRID = "table.ReactVirtualized__VirtualGrid"
+    NO_DATA_MESSAGE = '#no-resource-msg, div.pf-v6-c-empty-state__body:has-text("Not found")'
 
 
 class TasksPageLocators:
@@ -42,7 +42,7 @@ class TasksPageLocators:
     ACTIONS_COLUMN_HEADER = 'role=columnheader[name="Actions"]'
 
     # Task row verification
-    TASK_ROW_BY_NAME = 'tr[data-ouia-component-type="PF6/TableRow"]:has-text("{task_name}")'
+    TASK_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{task_name}")'
 
 
 class TaskRunsPageLocators:
@@ -59,7 +59,7 @@ class TaskRunsPageLocators:
 
     DELETE_TASKRUN_MENU_ITEM = 'role=menuitem[name="Delete TaskRun"]'
     # TaskRun row verification
-    TASKRUN_ROW_BY_NAME = 'tr[data-ouia-component-type="PF6/TableRow"]:has-text("{taskrun_name}")'
+    TASKRUN_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{taskrun_name}")'
 
 
 class CreateTaskPageLocators:

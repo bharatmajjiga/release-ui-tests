@@ -25,11 +25,11 @@ class PipelinesBasePageLocators:
     CLEAR_ALL_FILTERS_BUTTON = 'button:has-text("Clear all filters")'
 
     # Row actions
-    KEBAB_MENU_BUTTON = 'button[aria-label="Actions"]'
+    KEBAB_MENU_BUTTON = 'button[aria-label="kebab menu"]'
 
     # Data load checks
-    DATA_GRID = 'table[data-ouia-component-type="PF6/Table"]'
-    NO_DATA_MESSAGE = 'div[data-test="empty-box-body"]'
+    DATA_GRID = "table.ReactVirtualized__VirtualGrid"
+    NO_DATA_MESSAGE = "#no-resource-msg"
 
 
 class PipelinesPageLocators:
@@ -54,10 +54,10 @@ class PipelinesPageLocators:
     EDIT_LABELS_MENU_ITEM = 'role=menuitem[name="Edit labels"]'
     EDIT_ANNOTATIONS_MENU_ITEM = 'role=menuitem[name="Edit annotations"]'
     EDIT_PIPELINE_MENU_ITEM = 'role=menuitem[name="Edit Pipeline"]'
-    DELETE_PIPELINE_MENU_ITEM = 'role=menuitem[name="Delete"]'
+    DELETE_PIPELINE_MENU_ITEM = 'role=menuitem[name="Delete Pipeline"]'
 
     # Pipeline row verification
-    PIPELINE_ROW_BY_NAME = 'tr[data-ouia-component-type="PF6/TableRow"]:has-text("{pipeline_name}")'
+    PIPELINE_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{pipeline_name}")'
 
 
 class PipelineRunsPageLocators:
@@ -76,8 +76,8 @@ class PipelineRunsPageLocators:
     VIEW_LOGS_BUTTON = 'button:has-text("View logs")'
 
     # Row verification and actions
-    PIPELINERUN_ROW_BY_NAME = 'tr[data-ouia-component-type="PF6/TableRow"]:has-text("{pipelinerun_name}")'
-    PIPELINERUN_STATUS_CELL = 'tr:has-text("{pipelinerun_name}") td.pf-v6-c-table__td:nth-child(3)'
+    PIPELINERUN_ROW_BY_NAME = 'tr[data-test-rows="resource-row"]:has-text("{pipelinerun_name}")'
+    PIPELINERUN_STATUS_CELL = 'tr:has-text("{pipelinerun_name}") td.pf-v5-c-table__td:nth-child(3)'
     DELETE_PIPELINERUN_MENU_ITEM = 'role=menuitem[name="Delete PipelineRun"]'
 
 
