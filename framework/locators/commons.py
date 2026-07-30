@@ -52,8 +52,8 @@ class ConfirmationModalLocators:
     """Locators for confirmation modals (delete confirmations, action confirmations, etc.)."""
 
     # Modal container
-    MODAL_DIALOG = "form.modal-content"
-    MODAL_BODY = "div.modal-body"
+    MODAL_DIALOG = "#delete-modal-form"
+    MODAL_BODY = "#pf-modal-part-4"
 
     # Modal buttons
     CONFIRM_BUTTON = 'button[id="confirm-action"]'
