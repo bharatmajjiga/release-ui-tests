@@ -1,4 +1,5 @@
-# Using base image which has requirements (python3, playwright, chromium) installed
+# Test image: thin layer on top of the CI base (python, playwright, chromium, locales).
+# Build base first: podman build -t ui-ci -f DockerFile.CI .
 FROM quay.io/openshift-pipeline/ui-ci
 
 # Copy the tests into /tmp/release-ui-tests
@@ -6,7 +7,7 @@ RUN mkdir /tmp/release-ui-tests
 WORKDIR /tmp/release-ui-tests
 COPY . .
 
-# Set required permissions for OpenShift usage
+# OpenShift arbitrary UIDs need group-write on files added by COPY above.
 RUN chgrp -R 0 /tmp && \
     chmod -R g=u /tmp
 
