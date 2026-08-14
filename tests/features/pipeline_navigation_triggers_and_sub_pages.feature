@@ -2,7 +2,7 @@ Feature: Validate User is able to navigate to Triggers, EventListeners & Trigger
   ClusterTriggerBindings Pages & underlying sub pages
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
 
   @smoke
   Scenario: Verify successful navigation to Triggers page and Sub Tabs
