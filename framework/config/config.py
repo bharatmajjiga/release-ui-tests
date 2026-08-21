@@ -146,3 +146,13 @@ class Config(object, metaclass=Singleton):
         :return: str: The artifacts directory path.
         """
         return self._artifacts_dir
+
+    @property
+    def auth_type(self) -> str:
+        """
+        Gets the authentication type used for OpenShift console login.
+        Value is read from AUTH_TYPE environment variable, defaults to "kube:admin".
+        Supported values are "kube:admin", "htpasswd", and "direct".
+        :return: str: The authentication type string (lowercase).
+        """
+        return self._auth_type
