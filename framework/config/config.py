@@ -119,3 +119,40 @@ class Config(object, metaclass=Singleton):
         :return: int: The timeout value in milliseconds.
         """
         return self._timeout_ms
+
+    @property
+    def capture_screenshots(self) -> bool:
+        """
+        Whether to capture screenshots on test failure.
+        Value is read from CAPTURE_SCREENSHOTS environment variable, defaults to False.
+        :return: bool: True if screenshot capture is enabled.
+        """
+        return self._capture_screenshots
+
+    @property
+    def capture_recordings(self) -> bool:
+        """
+        Whether to record video of browser sessions.
+        Value is read from CAPTURE_RECORDINGS environment variable, defaults to False.
+        :return: bool: True if video recording is enabled.
+        """
+        return self._capture_recordings
+
+    @property
+    def artifacts_dir(self) -> str:
+        """
+        Directory path where test artifacts (screenshots, recordings) are saved.
+        Value is read from ARTIFACTS_DIR environment variable, defaults to /tmp/test-artifacts.
+        :return: str: The artifacts directory path.
+        """
+        return self._artifacts_dir
+
+    @property
+    def auth_type(self) -> str:
+        """
+        Gets the authentication type used for OpenShift console login.
+        Value is read from AUTH_TYPE environment variable, defaults to "kube:admin".
+        Supported values are "kube:admin", "htpasswd", and "direct".
+        :return: str: The authentication type string (lowercase).
+        """
+        return self._auth_type
