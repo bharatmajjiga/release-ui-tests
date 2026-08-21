@@ -1,7 +1,7 @@
 Feature: Validate User is able to navigate to Tasks, TaskRuns Pages & underlying sub pages
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
 
   @smoke
   Scenario: Verify successful navigation to Tasks page and Sub Tabs

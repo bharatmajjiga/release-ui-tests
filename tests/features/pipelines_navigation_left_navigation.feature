@@ -1,7 +1,7 @@
 Feature: Validate Appropriate Pipeline links are available under left navigation bar
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
 
   @smoke
   Scenario: Verify Pipelines button is visible in left navigation bar
