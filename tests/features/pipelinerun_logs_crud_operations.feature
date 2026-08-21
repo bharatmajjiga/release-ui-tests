@@ -1,7 +1,7 @@
 Feature: PipelineRun Logs CRUD Operations
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
     When the user expands Pipelines in left navigation bar
     And the user navigates to the Pipelines page
     And user switches to current project

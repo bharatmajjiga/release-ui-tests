@@ -63,6 +63,9 @@ class Config(object, metaclass=Singleton):
         except ValueError:
             self._timeout_ms = 90000
 
+        # Authentication type: kube:admin, htpasswd, or direct
+        self._auth_type = os.getenv("AUTH_TYPE", "kube:admin").lower()
+
         # Artifact capture settings
         self._capture_screenshots = os.getenv("CAPTURE_SCREENSHOTS", "false").lower() == "true"
         self._capture_recordings = os.getenv("CAPTURE_RECORDINGS", "false").lower() == "true"
