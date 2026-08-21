@@ -45,6 +45,22 @@ class LoginPage(BasePage):
 
         return await self.click_element(login_auth_link)
 
+    async def perform_login(self, auth_type: str) -> bool:
+        """
+        Performs the complete login flow based on the authentication type.
+        For "direct": skips OAuth provider selection and fills credentials immediately.
+        For "kube:admin" or "htpasswd": goes through OAuth provider selection first.
+        :param str auth_type: The authentication type ("kube:admin", "htpasswd", or "direct").
+        :return: bool: True if login is successful.
+        """
+        if auth_type == "direct":
+            await self.is_visible(self.locators.USERNAME_INPUT)
+            return await self.login()
+        else:
+            assert await self.verify_successful_navigation_to_login_page()
+            assert await self.choose_login_auth_type(auth_type)
+            return await self.login()
+
     async def login(self) -> bool:
         """
         Performs login action by filling username and password fields, then clicking the login button.

@@ -14,8 +14,8 @@ from framework.config.config import Config
 from framework.fixtures.async_bridge import run_async
 
 
-@given("the user is logged into openshift console with auth kube:admin")
-def user_logged_into_openshift_kube_admin(
+@given("the user is logged into openshift console")
+def user_logged_into_openshift(
     page: Dict[str, Any],
     config: Config,
     playwright_event_loop: asyncio.AbstractEventLoop,
@@ -35,20 +35,17 @@ def user_logged_into_openshift_kube_admin(
     """
 
     async def _ensure_logged_in() -> None:
-        # First scenario in feature - perform full login
+        # First scenario in feature - perform full login using AUTH_TYPE from config
         if not bdd_openshift_console_session.get("kube_admin_logged_in"):
             assert await page["login"].goto()
-            assert await page["login"].verify_successful_navigation_to_login_page()
-            assert await page["login"].choose_login_auth_type("kube:admin")
-            assert await page["login"].login()
+            assert await page["login"].perform_login(config.auth_type)
             assert await page["overview"].verify_on_page()
             bdd_openshift_console_session["kube_admin_logged_in"] = True
             return
 
         # Subsequent scenarios - check if session is still valid without navigation
-        # Only navigate if session expired (oauth redirect detected)
         current_url = page["raw_page"].url
-        if "oauth" in current_url.lower():
+        if "oauth" in current_url.lower() or (config.auth_type == "direct" and "login" in current_url.lower()):
             # Session expired - perform full login again
             bdd_openshift_console_session["kube_admin_logged_in"] = False
             await _ensure_logged_in()
