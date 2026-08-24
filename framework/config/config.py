@@ -66,6 +66,9 @@ class Config(object, metaclass=Singleton):
         # Authentication type: kube:admin, htpasswd, or direct
         self._auth_type = os.getenv("AUTH_TYPE", "kube:admin").lower()
 
+        # OpenShift Pipelines operator OLM channel
+        self._osp_channel = os.getenv("OSP_CHANNEL", "latest")
+
         # Artifact capture settings
         self._capture_screenshots = os.getenv("CAPTURE_SCREENSHOTS", "false").lower() == "true"
         self._capture_recordings = os.getenv("CAPTURE_RECORDINGS", "false").lower() == "true"
@@ -146,6 +149,10 @@ class Config(object, metaclass=Singleton):
         :return: str: The artifacts directory path.
         """
         return self._artifacts_dir
+
+    @property
+    def osp_channel(self) -> str:
+        return self._osp_channel
 
     @property
     def auth_type(self) -> str:
