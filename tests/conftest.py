@@ -13,6 +13,7 @@ import pytest
 from framework.fixtures.async_bridge import run_async
 
 # Import fixtures from framework
+from framework.fixtures.operator_fixtures import *  # noqa: F403, F401
 from framework.fixtures.ui_fixtures import *  # noqa: F403, F401
 
 logger = logging.getLogger(__name__)
