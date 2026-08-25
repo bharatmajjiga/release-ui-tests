@@ -19,19 +19,28 @@ def derive_api_url_from_console_url(console_url: str) -> Optional[str]:
     """
     Derive OpenShift API URL from Console URL.
 
-    Console URL format: https://console-openshift-console.apps.<cluster-domain>
-    API URL format: https://api.<cluster-domain>:6443
+    Handles three cluster types:
+    - Standard OCP: apps.<domain> → api.<domain>:6443
+    - CI clusters:  apps.<domain> → api.<domain>:6443
+    - ROSA:         apps.rosa.<id>.<rest> → api.<id>.<rest>:443
+      (ROSA console uses 'apps.rosa' but the API drops the 'rosa' prefix)
 
     :param str console_url: Console URL (e.g., https://console-openshift-console.apps.example.com)
     :return: Optional[str]: Derived API URL or None if pattern doesn't match
     """
-    # Extract cluster domain from console URL
-    # Pattern: https://console-openshift-console.apps.<cluster-domain>
-    match = re.search(r"https?://console-openshift-console\.apps\.(.+)", console_url)
+    match = re.search(r"https?://console-openshift-console\.apps\.(.+?)/?$", console_url.rstrip("/"))
 
     if match:
         cluster_domain = match.group(1)
-        api_url = f"https://api.{cluster_domain}:6443"
+
+        if "openshiftapps.com" in cluster_domain:
+            # ROSA: apps.rosa.<id>.<rest> → api.<id>.<rest>:443
+            cluster_domain = re.sub(r"^rosa\.", "", cluster_domain)
+            port = 443
+        else:
+            port = 6443
+
+        api_url = f"https://api.{cluster_domain}:{port}"
         logger.info(f"Derived API URL from console URL: {api_url}")
         return api_url
     else:

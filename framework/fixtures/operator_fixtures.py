@@ -55,9 +55,68 @@ async def _wait_for_csv(cli: OpenShiftCLI, timeout_seconds: int = 300, poll_inte
     return False
 
 
+async def _is_console_plugin_enabled(cli: OpenShiftCLI) -> bool:
+    exit_code, stdout, _ = await cli._run_command(
+        ["oc", "get", "console.operator.openshift.io", "cluster", "-o", "jsonpath={.spec.plugins}"],
+        check=False,
+    )
+    return exit_code == 0 and "pipelines-console-plugin" in stdout
+
+
+async def _enable_console_plugin(cli: OpenShiftCLI, timeout_seconds: int = 60, poll_interval: int = 5) -> None:
+    if await _is_console_plugin_enabled(cli):
+        logger.info("Pipelines console plugin already enabled.")
+        return
+
+    # Wait for the consoleplugin resource to exist (created by the operator)
+    elapsed = 0
+    while elapsed < timeout_seconds:
+        exit_code, _, _ = await cli._run_command(
+            ["oc", "get", "consoleplugin", "pipelines-console-plugin"],
+            check=False,
+        )
+        if exit_code == 0:
+            break
+        logger.info("Waiting for pipelines-console-plugin resource... (%ds/%ds)", elapsed, timeout_seconds)
+        await asyncio.sleep(poll_interval)
+        elapsed += poll_interval
+
+    logger.info("Enabling pipelines-console-plugin on console operator...")
+    exit_code, _, stderr = await cli._run_command(
+        [
+            "oc",
+            "patch",
+            "console.operator.openshift.io",
+            "cluster",
+            "--type",
+            "json",
+            "-p",
+            '[{"op":"add","path":"/spec/plugins/-","value":"pipelines-console-plugin"}]',
+        ],
+        check=False,
+    )
+    if exit_code != 0:
+        # /spec/plugins may not exist yet — use merge patch to create the array
+        await cli._run_command(
+            [
+                "oc",
+                "patch",
+                "console.operator.openshift.io",
+                "cluster",
+                "--type",
+                "merge",
+                "-p",
+                '{"spec":{"plugins":["pipelines-console-plugin"]}}',
+            ],
+            check=True,
+        )
+    logger.info("Pipelines console plugin enabled.")
+
+
 async def _ensure_osp(cli: OpenShiftCLI, channel: str) -> None:
     if await _is_osp_installed(cli):
         logger.info("OpenShift Pipelines operator already installed and Succeeded.")
+        await _enable_console_plugin(cli)
         return
 
     logger.info("OpenShift Pipelines operator not found, creating Subscription (channel=%s)...", channel)
@@ -70,6 +129,8 @@ async def _ensure_osp(cli: OpenShiftCLI, channel: str) -> None:
     if not await _wait_for_csv(cli):
         raise RuntimeError("OpenShift Pipelines operator did not reach 'Succeeded' status within timeout")
     logger.info("OpenShift Pipelines operator installed and verified.")
+
+    await _enable_console_plugin(cli)
 
 
 @pytest.fixture(scope="session")
