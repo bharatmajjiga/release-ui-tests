@@ -113,10 +113,30 @@ async def _enable_console_plugin(cli: OpenShiftCLI, timeout_seconds: int = 60, p
     logger.info("Pipelines console plugin enabled.")
 
 
+async def _wait_for_tektonconfig(cli: OpenShiftCLI, timeout_seconds: int = 300, poll_interval: int = 15) -> bool:
+    elapsed = 0
+    while elapsed < timeout_seconds:
+        exit_code, stdout, _ = await cli._run_command(
+            ["oc", "get", "tektonconfig", "config", "-o", 'jsonpath={.status.conditions[?(@.type=="Ready")].status}'],
+            check=False,
+        )
+        if exit_code == 0 and "True" in stdout:
+            return True
+        logger.info(
+            "Waiting for TektonConfig to be ready... (%ds/%ds)",
+            elapsed,
+            timeout_seconds,
+        )
+        await asyncio.sleep(poll_interval)
+        elapsed += poll_interval
+    return False
+
+
 async def _ensure_osp(cli: OpenShiftCLI, channel: str) -> None:
     if await _is_osp_installed(cli):
         logger.info("OpenShift Pipelines operator already installed and Succeeded.")
         await _enable_console_plugin(cli)
+        await _wait_for_tektonconfig_ready(cli)
         return
 
     logger.info("OpenShift Pipelines operator not found, creating Subscription (channel=%s)...", channel)
@@ -131,6 +151,14 @@ async def _ensure_osp(cli: OpenShiftCLI, channel: str) -> None:
     logger.info("OpenShift Pipelines operator installed and verified.")
 
     await _enable_console_plugin(cli)
+    await _wait_for_tektonconfig_ready(cli)
+
+
+async def _wait_for_tektonconfig_ready(cli: OpenShiftCLI) -> None:
+    logger.info("Waiting for TektonConfig to be ready...")
+    if not await _wait_for_tektonconfig(cli):
+        raise RuntimeError("TektonConfig did not reach Ready state within timeout")
+    logger.info("TektonConfig is ready.")
 
 
 @pytest.fixture(scope="session")
