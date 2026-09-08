@@ -215,14 +215,29 @@ def ensure_osp_installed(
     from framework.fixtures.async_bridge import run_async
 
     async def _setup() -> None:
-        logger.info("[OSP Setup] [0/5 Login] Logging into OpenShift cluster via CLI...")
-        api_url = derive_api_url_from_console_url(config.base_url)
-        assert api_url, f"Could not derive API URL from {config.base_url}"
-        logger.info("[OSP Setup] [0/5 Login] API URL: %s", api_url)
-        assert await openshift_cli.login_with_credentials(
-            api_url=api_url, username=config.username, password=config.password
-        ), "CLI login failed"
-        logger.info("[OSP Setup] [0/5 Login] Logged in successfully.")
+        import os
+
+        logger.info("[OSP Setup] [0/5 Login] Checking CLI authentication...")
+
+        # 1. Check if already logged in via existing KUBECONFIG (CI/Prow)
+        if await openshift_cli.is_logged_in():
+            logger.info("[OSP Setup] [0/5 Login] Already authenticated via existing KUBECONFIG.")
+        else:
+            # 2. Try API_URL env var if set (explicit override)
+            api_url = os.getenv("API_URL")
+            if api_url:
+                logger.info("[OSP Setup] [0/5 Login] Using API_URL env var: %s", api_url)
+            else:
+                # 3. Derive from CONSOLE_URL
+                api_url = derive_api_url_from_console_url(config.base_url)
+                assert api_url, f"Could not derive API URL from {config.base_url}"
+                logger.info("[OSP Setup] [0/5 Login] Derived API URL: %s", api_url)
+
+            assert await openshift_cli.login_with_credentials(
+                api_url=api_url, username=config.username, password=config.password
+            ), f"CLI login failed against {api_url}"
+            logger.info("[OSP Setup] [0/5 Login] Logged in successfully.")
+
         await _ensure_osp(openshift_cli, config.osp_channel)
 
     run_async(playwright_event_loop, _setup())
