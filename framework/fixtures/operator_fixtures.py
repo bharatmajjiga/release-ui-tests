@@ -46,7 +46,7 @@ async def _wait_for_csv(cli: OpenShiftCLI, timeout_seconds: int = 300, poll_inte
         if await _is_osp_installed(cli):
             return True
         logger.info(
-            "Waiting for OpenShift Pipelines CSV to reach Succeeded... (%ds/%ds)",
+            "[OSP Setup] [2/5 Install] Waiting for CSV to reach Succeeded... (%ds/%ds)",
             elapsed,
             timeout_seconds,
         )
@@ -65,10 +65,9 @@ async def _is_console_plugin_enabled(cli: OpenShiftCLI) -> bool:
 
 async def _enable_console_plugin(cli: OpenShiftCLI, timeout_seconds: int = 60, poll_interval: int = 5) -> None:
     if await _is_console_plugin_enabled(cli):
-        logger.info("Pipelines console plugin already enabled.")
+        logger.info("[OSP Setup] [3/5 Console Plugin] Already enabled, skipping.")
         return
 
-    # Wait for the consoleplugin resource to exist (created by the operator)
     elapsed = 0
     while elapsed < timeout_seconds:
         exit_code, _, _ = await cli._run_command(
@@ -77,12 +76,16 @@ async def _enable_console_plugin(cli: OpenShiftCLI, timeout_seconds: int = 60, p
         )
         if exit_code == 0:
             break
-        logger.info("Waiting for pipelines-console-plugin resource... (%ds/%ds)", elapsed, timeout_seconds)
+        logger.info(
+            "[OSP Setup] [3/5 Console Plugin] Waiting for consoleplugin resource to be created... (%ds/%ds)",
+            elapsed,
+            timeout_seconds,
+        )
         await asyncio.sleep(poll_interval)
         elapsed += poll_interval
 
-    logger.info("Enabling pipelines-console-plugin on console operator...")
-    exit_code, _, stderr = await cli._run_command(
+    logger.info("[OSP Setup] [3/5 Console Plugin] Enabling pipelines-console-plugin...")
+    exit_code, _, _ = await cli._run_command(
         [
             "oc",
             "patch",
@@ -96,7 +99,6 @@ async def _enable_console_plugin(cli: OpenShiftCLI, timeout_seconds: int = 60, p
         check=False,
     )
     if exit_code != 0:
-        # /spec/plugins may not exist yet — use merge patch to create the array
         await cli._run_command(
             [
                 "oc",
@@ -110,7 +112,7 @@ async def _enable_console_plugin(cli: OpenShiftCLI, timeout_seconds: int = 60, p
             ],
             check=True,
         )
-    logger.info("Pipelines console plugin enabled.")
+    logger.info("[OSP Setup] [3/5 Console Plugin] Enabled successfully.")
 
 
 async def _wait_for_tektonconfig(cli: OpenShiftCLI, timeout_seconds: int = 300, poll_interval: int = 15) -> bool:
@@ -123,7 +125,7 @@ async def _wait_for_tektonconfig(cli: OpenShiftCLI, timeout_seconds: int = 300, 
         if exit_code == 0 and "True" in stdout:
             return True
         logger.info(
-            "Waiting for TektonConfig to be ready... (%ds/%ds)",
+            "[OSP Setup] [4/5 TektonConfig] Waiting for Ready=True... (%ds/%ds)",
             elapsed,
             timeout_seconds,
         )
@@ -132,33 +134,75 @@ async def _wait_for_tektonconfig(cli: OpenShiftCLI, timeout_seconds: int = 300, 
     return False
 
 
+async def _wait_for_deployment_rollout(
+    cli: OpenShiftCLI,
+    deployment: str,
+    namespace: str,
+    timeout_seconds: int = 120,
+    poll_interval: int = 10,
+) -> bool:
+    elapsed = 0
+    while elapsed < timeout_seconds:
+        exit_code, _, _ = await cli._run_command(
+            ["oc", "rollout", "status", f"deployment/{deployment}", "-n", namespace, f"--timeout={poll_interval}s"],
+            check=False,
+        )
+        if exit_code == 0:
+            return True
+        logger.info(
+            "[OSP Setup] [5/5 Pod Readiness] Waiting for %s/%s rollout... (%ds/%ds)",
+            namespace,
+            deployment,
+            elapsed,
+            timeout_seconds,
+        )
+        elapsed += poll_interval
+    return False
+
+
 async def _ensure_osp(cli: OpenShiftCLI, channel: str) -> None:
+    logger.info("[OSP Setup] ===== Starting OpenShift Pipelines operator setup =====")
+
+    # Step 1: Check if operator is already installed
+    logger.info("[OSP Setup] [1/5 Check] Checking if operator is already installed...")
     if await _is_osp_installed(cli):
-        logger.info("OpenShift Pipelines operator already installed and Succeeded.")
-        await _enable_console_plugin(cli)
-        await _wait_for_tektonconfig_ready(cli)
-        return
+        logger.info("[OSP Setup] [1/5 Check] Operator already installed with CSV Succeeded.")
+    else:
+        # Step 2: Install operator
+        logger.info("[OSP Setup] [2/5 Install] Operator not found, creating Subscription (channel=%s)...", channel)
+        yaml_content = SUBSCRIPTION_YAML.format(channel=channel)
+        success = await cli.apply_yaml(yaml_content)
+        if not success:
+            raise RuntimeError("Failed to apply OpenShift Pipelines Subscription YAML")
+        logger.info("[OSP Setup] [2/5 Install] Subscription created, waiting for CSV...")
+        if not await _wait_for_csv(cli):
+            raise RuntimeError("OpenShift Pipelines operator did not reach 'Succeeded' within timeout")
+        logger.info("[OSP Setup] [2/5 Install] CSV reached Succeeded.")
 
-    logger.info("OpenShift Pipelines operator not found, creating Subscription (channel=%s)...", channel)
-    yaml_content = SUBSCRIPTION_YAML.format(channel=channel)
-    success = await cli.apply_yaml(yaml_content)
-    if not success:
-        raise RuntimeError("Failed to apply OpenShift Pipelines Subscription YAML")
-
-    logger.info("Subscription created. Waiting for CSV to reach Succeeded...")
-    if not await _wait_for_csv(cli):
-        raise RuntimeError("OpenShift Pipelines operator did not reach 'Succeeded' status within timeout")
-    logger.info("OpenShift Pipelines operator installed and verified.")
-
+    # Step 3: Enable console plugin
+    logger.info("[OSP Setup] [3/5 Console Plugin] Checking console plugin status...")
     await _enable_console_plugin(cli)
-    await _wait_for_tektonconfig_ready(cli)
 
-
-async def _wait_for_tektonconfig_ready(cli: OpenShiftCLI) -> None:
-    logger.info("Waiting for TektonConfig to be ready...")
+    # Step 4: Wait for TektonConfig
+    logger.info("[OSP Setup] [4/5 TektonConfig] Checking TektonConfig readiness...")
     if not await _wait_for_tektonconfig(cli):
         raise RuntimeError("TektonConfig did not reach Ready state within timeout")
-    logger.info("TektonConfig is ready.")
+    logger.info("[OSP Setup] [4/5 TektonConfig] Ready.")
+
+    # Step 5: Wait for console pods
+    logger.info("[OSP Setup] [5/5 Pod Readiness] Checking console deployments...")
+
+    logger.info("[OSP Setup] [5/5 Pod Readiness] Waiting for openshift-console/console...")
+    if not await _wait_for_deployment_rollout(cli, "console", "openshift-console"):
+        raise RuntimeError("openshift-console deployment did not roll out within timeout")
+    logger.info("[OSP Setup] [5/5 Pod Readiness] openshift-console/console is ready.")
+
+    logger.info("[OSP Setup] [5/5 Pod Readiness] Waiting for openshift-pipelines/pipelines-console-plugin...")
+    if not await _wait_for_deployment_rollout(cli, "pipelines-console-plugin", "openshift-pipelines"):
+        raise RuntimeError("pipelines-console-plugin deployment did not roll out within timeout")
+    logger.info("[OSP Setup] [5/5 Pod Readiness] openshift-pipelines/pipelines-console-plugin is ready.")
+
+    logger.info("[OSP Setup] ===== OpenShift Pipelines operator setup complete =====")
 
 
 @pytest.fixture(scope="session")
@@ -171,11 +215,14 @@ def ensure_osp_installed(
     from framework.fixtures.async_bridge import run_async
 
     async def _setup() -> None:
+        logger.info("[OSP Setup] [0/5 Login] Logging into OpenShift cluster via CLI...")
         api_url = derive_api_url_from_console_url(config.base_url)
         assert api_url, f"Could not derive API URL from {config.base_url}"
+        logger.info("[OSP Setup] [0/5 Login] API URL: %s", api_url)
         assert await openshift_cli.login_with_credentials(
             api_url=api_url, username=config.username, password=config.password
         ), "CLI login failed"
+        logger.info("[OSP Setup] [0/5 Login] Logged in successfully.")
         await _ensure_osp(openshift_cli, config.osp_channel)
 
     run_async(playwright_event_loop, _setup())
