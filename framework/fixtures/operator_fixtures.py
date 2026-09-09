@@ -229,8 +229,6 @@ async def _wait_for_csv(cli: OpenShiftCLI, timeout_seconds: int = 300, poll_inte
         elapsed += poll_interval
 
     await _dump_olm_diagnostics(cli)
-    logger.error("[OLM Diag] Pausing for 1 hour to allow manual inspection of the cluster...")
-    await asyncio.sleep(3600)
     return False
 
 
