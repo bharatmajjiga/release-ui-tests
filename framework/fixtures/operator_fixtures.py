@@ -44,14 +44,9 @@ async def _inspect_subscription(cli: OpenShiftCLI) -> None:
     """Log Subscription state: currentCSV, installedCSV, state, conditions."""
     _, stdout, _ = await cli._run_command(
         [
-            "oc",
-            "get",
-            "subscription",
-            "openshift-pipelines-operator",
-            "-n",
-            "openshift-operators",
-            "-o",
-            "jsonpath={.status.currentCSV}|{.status.installedCSV}|{.status.state}",
+            "oc", "get", "subscription", "openshift-pipelines-operator",
+            "-n", "openshift-operators",
+            "-o", "jsonpath={.status.currentCSV}|{.status.installedCSV}|{.status.state}",
         ],
         check=False,
     )
@@ -61,21 +56,14 @@ async def _inspect_subscription(cli: OpenShiftCLI) -> None:
     state = parts[2] if len(parts) > 2 else "<none>"
     logger.info(
         "[OLM Diag] Subscription: currentCSV=%s installedCSV=%s state=%s",
-        current_csv,
-        installed_csv,
-        state,
+        current_csv, installed_csv, state,
     )
 
     _, conds, _ = await cli._run_command(
         [
-            "oc",
-            "get",
-            "subscription",
-            "openshift-pipelines-operator",
-            "-n",
-            "openshift-operators",
-            "-o",
-            'jsonpath={range .status.conditions[*]}{.type}={.status} ({.reason}: {.message}){"\\n"}{end}',
+            "oc", "get", "subscription", "openshift-pipelines-operator",
+            "-n", "openshift-operators",
+            "-o", 'jsonpath={range .status.conditions[*]}{.type}={.status} ({.reason}: {.message}){"\\n"}{end}',
         ],
         check=False,
     )
@@ -87,13 +75,8 @@ async def _inspect_installplan(cli: OpenShiftCLI) -> None:
     """Log InstallPlan existence, approval, and phase."""
     _, stdout, _ = await cli._run_command(
         [
-            "oc",
-            "get",
-            "installplan",
-            "-n",
-            "openshift-operators",
-            "-o",
-            'jsonpath={range .items[*]}{.metadata.name} approved={.spec.approved} phase={.status.phase}{"\\n"}{end}',
+            "oc", "get", "installplan", "-n", "openshift-operators",
+            "-o", 'jsonpath={range .items[*]}{.metadata.name} approved={.spec.approved} phase={.status.phase}{"\\n"}{end}',
         ],
         check=False,
     )
@@ -107,13 +90,8 @@ async def _inspect_csv(cli: OpenShiftCLI) -> None:
     """Log CSV phase and conditions for any pipelines-related CSV."""
     _, stdout, _ = await cli._run_command(
         [
-            "oc",
-            "get",
-            "csv",
-            "-n",
-            "openshift-operators",
-            "-o",
-            "jsonpath={range .items[?(@.spec.displayName=='Red Hat OpenShift Pipelines')]}"
+            "oc", "get", "csv", "-n", "openshift-operators",
+            "-o", "jsonpath={range .items[?(@.spec.displayName=='Red Hat OpenShift Pipelines')]}"
             '{.metadata.name} phase={.status.phase}{"\\n"}'
             '{range .status.conditions[*]}  {.type}={.status} ({.reason}: {.message}){"\\n"}{end}{end}',
         ],
@@ -155,13 +133,8 @@ async def _dump_olm_diagnostics(cli: OpenShiftCLI) -> None:
 
     _, events, _ = await cli._run_command(
         [
-            "oc",
-            "get",
-            "events",
-            "-n",
-            "openshift-operators",
-            "--sort-by=.lastTimestamp",
-            "--field-selector=type!=Normal",
+            "oc", "get", "events", "-n", "openshift-operators",
+            "--sort-by=.lastTimestamp", "--field-selector=type!=Normal",
         ],
         check=False,
     )
@@ -169,14 +142,8 @@ async def _dump_olm_diagnostics(cli: OpenShiftCLI) -> None:
 
     _, cs_status, _ = await cli._run_command(
         [
-            "oc",
-            "get",
-            "catalogsource",
-            "redhat-operators",
-            "-n",
-            "openshift-marketplace",
-            "-o",
-            "jsonpath=state={.status.connectionState.lastObservedState} address={.status.connectionState.address}",
+            "oc", "get", "catalogsource", "redhat-operators", "-n", "openshift-marketplace",
+            "-o", "jsonpath=state={.status.connectionState.lastObservedState} address={.status.connectionState.address}",
         ],
         check=False,
     )
@@ -184,12 +151,8 @@ async def _dump_olm_diagnostics(cli: OpenShiftCLI) -> None:
 
     _, pkg, _ = await cli._run_command(
         [
-            "oc",
-            "get",
-            "packagemanifest",
-            "openshift-pipelines-operator-rh",
-            "-o",
-            "jsonpath=catalog={.status.catalogSource} channels={.status.channels[*].name}",
+            "oc", "get", "packagemanifest", "openshift-pipelines-operator-rh",
+            "-o", "jsonpath=catalog={.status.catalogSource} channels={.status.channels[*].name}",
         ],
         check=False,
     )
@@ -222,13 +185,8 @@ async def _wait_for_csv(cli: OpenShiftCLI, timeout_seconds: int = 300, poll_inte
             elapsed,
             timeout_seconds,
         )
-        await _inspect_subscription(cli)
-        await _inspect_installplan(cli)
-        await _inspect_csv(cli)
         await asyncio.sleep(poll_interval)
         elapsed += poll_interval
-
-    await _dump_olm_diagnostics(cli)
     return False
 
 
