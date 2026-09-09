@@ -2,6 +2,7 @@
 
 import asyncio
 import logging
+import os
 import time
 
 import pytest
@@ -24,7 +25,7 @@ spec:
   sourceNamespace: openshift-marketplace
 """
 
-OSP_SETUP_TIMEOUT_SECONDS = 600
+OSP_SETUP_TIMEOUT_SECONDS = int(os.getenv("OSP_SETUP_TIMEOUT", "600"))
 
 
 def _remaining(deadline: float) -> float:
