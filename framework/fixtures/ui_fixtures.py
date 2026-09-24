@@ -139,7 +139,7 @@ async def playwright_page(
 
 
 @pytest_asyncio.fixture(scope="module", loop_scope="session")
-async def page(playwright_page: Page, config: Config) -> Dict[str, Any]:
+async def page(playwright_page: Page, config: Config, ensure_osp_installed: None) -> Dict[str, Any]:
     """
     fixture that injects hierarchical Page Object containers.
     Scoped to the test module so all scenarios from the same feature registration share one
