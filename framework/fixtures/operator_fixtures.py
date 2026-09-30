@@ -12,20 +12,51 @@ from framework.config.config import Config
 
 logger = logging.getLogger(__name__)
 
+OSP_SETUP_TIMEOUT_SECONDS = int(os.getenv("OSP_SETUP_TIMEOUT", "600"))
+
+CATALOG_SOURCE_YAML = """\
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: {name}
+  namespace: openshift-marketplace
+spec:
+  sourceType: grpc
+  image: {index_image}
+  displayName: {name}
+  updateStrategy:
+    registryPoll:
+      interval: 30m
+"""
+
+IDMS_YAML = """\
+apiVersion: config.openshift.io/v1
+kind: ImageDigestMirrorSet
+metadata:
+  name: pipelines-mirror
+spec:
+  imageDigestMirrors:
+  - source: registry.stage.redhat.io/openshift-pipelines
+    mirrors:
+    - quay.io/openshift-pipeline
+  - source: registry.redhat.io/openshift-pipelines
+    mirrors:
+    - quay.io/openshift-pipeline
+"""
+
 SUBSCRIPTION_YAML = """\
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: openshift-pipelines-operator
+  name: openshift-pipelines-operator-rh
   namespace: openshift-operators
 spec:
   channel: {channel}
+  installPlanApproval: {install_plan_approval}
   name: openshift-pipelines-operator-rh
-  source: redhat-operators
+  source: {catalog_source}
   sourceNamespace: openshift-marketplace
-"""
-
-OSP_SETUP_TIMEOUT_SECONDS = int(os.getenv("OSP_SETUP_TIMEOUT", "600"))
+{starting_csv_line}"""
 
 
 def _remaining(deadline: float) -> float:
@@ -36,6 +67,10 @@ def _elapsed_str(start: float, deadline: float) -> str:
     elapsed = int(time.monotonic() - start)
     total = int(deadline - start)
     return f"{elapsed}s/{total}s"
+
+
+def _is_nightly(index_image: str) -> bool:
+    return index_image.endswith(":nightly")
 
 
 async def _is_osp_installed(cli: OpenShiftCLI) -> bool:
@@ -54,6 +89,71 @@ async def _is_osp_installed(cli: OpenShiftCLI) -> bool:
     return exit_code == 0 and "Succeeded" in stdout
 
 
+async def _apply_idms(cli: OpenShiftCLI) -> bool:
+    logger.info("[OSP Setup] Applying ImageDigestMirrorSet for nightly registry mirrors...")
+    success = await cli.apply_yaml(IDMS_YAML)
+    if success:
+        exit_code, _, _ = await cli._run_command(
+            ["oc", "get", "imagedigestmirrorset", "pipelines-mirror", "-o", "name"],
+            check=False,
+        )
+        if exit_code == 0:
+            logger.info("[OSP Setup] ImageDigestMirrorSet applied successfully.")
+            return True
+    logger.error("[OSP Setup] Failed to apply ImageDigestMirrorSet.")
+    return False
+
+
+async def _create_catalog_source(
+    cli: OpenShiftCLI,
+    catalog_source: str,
+    index_image: str,
+    start: float,
+    deadline: float,
+) -> bool:
+    logger.info(
+        "[OSP Setup] Creating CatalogSource '%s' from index image: %s",
+        catalog_source,
+        index_image,
+    )
+    yaml_content = CATALOG_SOURCE_YAML.format(name=catalog_source, index_image=index_image)
+    success = await cli.apply_yaml(yaml_content)
+    if not success:
+        logger.error("[OSP Setup] Failed to apply CatalogSource YAML.")
+        return False
+
+    logger.info("[OSP Setup] Waiting for CatalogSource pod to be ready...")
+    await asyncio.sleep(10)
+
+    while _remaining(deadline) > 0:
+        exit_code, stdout, _ = await cli._run_command(
+            [
+                "oc",
+                "get",
+                "catalogsource",
+                catalog_source,
+                "-n",
+                "openshift-marketplace",
+                "-o",
+                "jsonpath={.status.connectionState.lastObservedState}",
+            ],
+            check=False,
+        )
+        if exit_code == 0 and stdout.strip() == "READY":
+            logger.info("[OSP Setup] CatalogSource '%s' is READY.", catalog_source)
+            return True
+        logger.info(
+            "[OSP Setup] CatalogSource '%s' state=%s, waiting... (%s)",
+            catalog_source,
+            stdout.strip() if stdout else "unknown",
+            _elapsed_str(start, deadline),
+        )
+        await asyncio.sleep(min(15, _remaining(deadline)))
+
+    logger.error("[OSP Setup] CatalogSource '%s' did not reach READY state.", catalog_source)
+    return False
+
+
 async def _wait_for_csv(cli: OpenShiftCLI, start: float, deadline: float, poll_interval: int = 15) -> bool:
     while _remaining(deadline) > 0:
         if await _is_osp_installed(cli):
@@ -63,6 +163,85 @@ async def _wait_for_csv(cli: OpenShiftCLI, start: float, deadline: float, poll_i
             _elapsed_str(start, deadline),
         )
         await asyncio.sleep(min(poll_interval, _remaining(deadline)))
+    return False
+
+
+async def _approve_installplan(cli: OpenShiftCLI, start: float, deadline: float) -> bool:
+    """Approve Manual InstallPlans and wait for CSV Succeeded."""
+    logger.info("[OSP Setup] [2/5 Install] Waiting for InstallPlan (Manual approval)...")
+    while _remaining(deadline) > 0:
+        # Check if CSV is already Succeeded
+        exit_code, installed_csv, _ = await cli._run_command(
+            [
+                "oc",
+                "get",
+                "subscription",
+                "openshift-pipelines-operator-rh",
+                "-n",
+                "openshift-operators",
+                "-o",
+                "jsonpath={.status.installedCSV}",
+            ],
+            check=False,
+        )
+        if exit_code == 0 and installed_csv:
+            phase_code, phase, _ = await cli._run_command(
+                [
+                    "oc",
+                    "get",
+                    f"csv/{installed_csv}",
+                    "-n",
+                    "openshift-operators",
+                    "-o",
+                    "jsonpath={.status.phase}",
+                ],
+                check=False,
+            )
+            if phase_code == 0 and phase == "Succeeded":
+                logger.info("[OSP Setup] [2/5 Install] CSV %s reached Succeeded.", installed_csv)
+                return True
+
+        # Find and approve unapproved InstallPlans
+        exit_code, ip_output, _ = await cli._run_command(
+            [
+                "oc",
+                "get",
+                "installplan",
+                "-n",
+                "openshift-operators",
+                "-o",
+                "jsonpath={range .items[*]}{.metadata.name}|{.spec.approved}|"
+                '{.spec.clusterServiceVersionNames[*]}{"\\n"}{end}',
+            ],
+            check=False,
+        )
+        if exit_code == 0 and ip_output:
+            for line in ip_output.strip().split("\n"):
+                parts = line.split("|")
+                if len(parts) >= 3:
+                    ip_name, approved, csvs = parts[0], parts[1], parts[2]
+                    if "openshift-pipelines-operator-rh" in csvs and approved != "true":
+                        logger.info("[OSP Setup] [2/5 Install] Approving InstallPlan %s", ip_name)
+                        await cli._run_command(
+                            [
+                                "oc",
+                                "patch",
+                                f"installplan/{ip_name}",
+                                "-n",
+                                "openshift-operators",
+                                "--type",
+                                "merge",
+                                "-p",
+                                '{"spec":{"approved":true}}',
+                            ],
+                            check=False,
+                        )
+
+        logger.info(
+            "[OSP Setup] [2/5 Install] Waiting for operator CSV... (%s)",
+            _elapsed_str(start, deadline),
+        )
+        await asyncio.sleep(min(10, _remaining(deadline)))
     return False
 
 
@@ -166,63 +345,143 @@ async def _wait_for_deployment_rollout(
     return False
 
 
-async def _ensure_osp(cli: OpenShiftCLI, channel: str, timeout_seconds: int = OSP_SETUP_TIMEOUT_SECONDS) -> None:
-    start = time.monotonic()
-    deadline = start + timeout_seconds
+async def _prepare_non_prod_catalog(
+    cli: OpenShiftCLI,
+    env: str,
+    catalog_source: str,
+    index_image: str,
+    nightly: bool,
+    start: float,
+    deadline: float,
+) -> None:
+    if env not in ("pre-stage", "stage"):
+        return
+    if not index_image:
+        raise RuntimeError(
+            f"KONFLUX_INDEX_IMAGE is required when OPERATOR_ENVIRONMENT={env}. Set it to the quay.io index image URL."
+        )
+    if nightly:
+        if not await _apply_idms(cli):
+            raise RuntimeError("Failed to apply ImageDigestMirrorSet for nightly builds")
+        await asyncio.sleep(5)
+    if not await _create_catalog_source(cli, catalog_source, index_image, start, deadline):
+        raise RuntimeError(
+            f"CatalogSource '{catalog_source}' did not reach READY within timeout ({_elapsed_str(start, deadline)})"
+        )
+
+
+async def _install_operator(
+    cli: OpenShiftCLI,
+    channel: str,
+    catalog_source: str,
+    operator_version: str,
+    nightly: bool,
+    start: float,
+    deadline: float,
+) -> None:
+    starting_csv_line = ""
+    install_plan_approval = "Automatic"
+    if operator_version and not nightly:
+        csv_name = f"openshift-pipelines-operator-rh.v{operator_version}"
+        starting_csv_line = f"  startingCSV: {csv_name}"
+        install_plan_approval = "Manual"
+        logger.info(
+            "[OSP Setup] [2/5 Install] Pinning startingCSV=%s on %s/%s",
+            csv_name,
+            catalog_source,
+            channel,
+        )
+    elif nightly:
+        install_plan_approval = "Manual"
+        logger.info(
+            "[OSP Setup] [2/5 Install] Nightly channel-head install on %s/%s (no startingCSV pin)",
+            catalog_source,
+            channel,
+        )
+
     logger.info(
-        "[OSP Setup] ===== Starting OpenShift Pipelines operator setup (timeout=%ds) =====",
-        timeout_seconds,
+        "[OSP Setup] [2/5 Install] Creating Subscription (channel=%s, source=%s, approval=%s)...",
+        channel,
+        catalog_source,
+        install_plan_approval,
     )
+    yaml_content = SUBSCRIPTION_YAML.format(
+        channel=channel,
+        catalog_source=catalog_source,
+        install_plan_approval=install_plan_approval,
+        starting_csv_line=starting_csv_line,
+    )
+    success = await cli.apply_yaml(yaml_content)
+    if not success:
+        raise RuntimeError("Failed to apply OpenShift Pipelines Subscription YAML")
+    logger.info("[OSP Setup] [2/5 Install] Subscription created, waiting for CSV...")
 
-    # Step 1: Check if operator is already installed
-    logger.info("[OSP Setup] [1/5 Check] Checking if operator is already installed...")
-    if await _is_osp_installed(cli):
-        logger.info("[OSP Setup] [1/5 Check] Operator already installed with CSV Succeeded.")
+    if install_plan_approval == "Manual":
+        if not await _approve_installplan(cli, start, deadline):
+            raise RuntimeError(f"Operator CSV did not reach Succeeded within timeout ({_elapsed_str(start, deadline)})")
     else:
-        # Step 2: Install operator
-        logger.info("[OSP Setup] [2/5 Install] Operator not found, creating Subscription (channel=%s)...", channel)
-        yaml_content = SUBSCRIPTION_YAML.format(channel=channel)
-        success = await cli.apply_yaml(yaml_content)
-        if not success:
-            raise RuntimeError("Failed to apply OpenShift Pipelines Subscription YAML")
-        logger.info("[OSP Setup] [2/5 Install] Subscription created, waiting for CSV...")
         if not await _wait_for_csv(cli, start, deadline):
-            raise RuntimeError(
-                f"OpenShift Pipelines CSV did not reach 'Succeeded' within global "
-                f"timeout ({_elapsed_str(start, deadline)})"
-            )
-        logger.info("[OSP Setup] [2/5 Install] CSV reached Succeeded.")
+            raise RuntimeError(f"Operator CSV did not reach Succeeded within timeout ({_elapsed_str(start, deadline)})")
+    logger.info("[OSP Setup] [2/5 Install] CSV reached Succeeded.")
 
-    # Step 3: Wait for TektonConfig
+
+async def _validate_post_install(cli: OpenShiftCLI, start: float, deadline: float) -> None:
     logger.info("[OSP Setup] [3/5 TektonConfig] Checking TektonConfig readiness...")
     if not await _wait_for_tektonconfig(cli, start, deadline):
-        raise RuntimeError(
-            f"TektonConfig did not reach Ready state within global timeout ({_elapsed_str(start, deadline)})"
-        )
+        raise RuntimeError(f"TektonConfig did not reach Ready state within timeout ({_elapsed_str(start, deadline)})")
     logger.info("[OSP Setup] [3/5 TektonConfig] Ready.")
 
-    # Step 4: Enable console plugin
     logger.info("[OSP Setup] [4/5 Console Plugin] Checking console plugin status...")
     if not await _enable_console_plugin(cli, start, deadline):
-        raise RuntimeError(f"Console plugin was not enabled within global timeout ({_elapsed_str(start, deadline)})")
+        raise RuntimeError(f"Console plugin was not enabled within timeout ({_elapsed_str(start, deadline)})")
 
-    # Step 5: Wait for console pods
     logger.info("[OSP Setup] [5/5 Pod Readiness] Checking console deployments...")
-
     logger.info("[OSP Setup] [5/5 Pod Readiness] Waiting for openshift-console/console...")
     if not await _wait_for_deployment_rollout(cli, "console", "openshift-console", start, deadline):
         raise RuntimeError(
-            f"openshift-console deployment did not roll out within global timeout ({_elapsed_str(start, deadline)})"
+            f"openshift-console deployment did not roll out within timeout ({_elapsed_str(start, deadline)})"
         )
     logger.info("[OSP Setup] [5/5 Pod Readiness] openshift-console/console is ready.")
 
     logger.info("[OSP Setup] [5/5 Pod Readiness] Waiting for openshift-pipelines/pipelines-console-plugin...")
     if not await _wait_for_deployment_rollout(cli, "pipelines-console-plugin", "openshift-pipelines", start, deadline):
         raise RuntimeError(
-            f"pipelines-console-plugin deployment did not roll out within global timeout"
-            f" ({_elapsed_str(start, deadline)})"
+            f"pipelines-console-plugin deployment did not roll out within timeout ({_elapsed_str(start, deadline)})"
         )
     logger.info("[OSP Setup] [5/5 Pod Readiness] openshift-pipelines/pipelines-console-plugin is ready.")
+
+
+async def _ensure_osp(cli: OpenShiftCLI, config: Config, timeout_seconds: int = OSP_SETUP_TIMEOUT_SECONDS) -> None:
+    start = time.monotonic()
+    deadline = start + timeout_seconds
+
+    env = config.operator_environment
+    channel = config.channel
+    catalog_source = config.catalog_source
+    index_image = config.konflux_index_image
+    operator_version = config.operator_version
+    nightly = _is_nightly(index_image) if index_image else False
+
+    logger.info("[OSP Setup] ===== Starting OpenShift Pipelines operator setup (timeout=%ds) =====", timeout_seconds)
+    logger.info(
+        "[OSP Setup] Config: environment=%s channel=%s catalog_source=%s version=%s index_image=%s nightly=%s",
+        env,
+        channel,
+        catalog_source,
+        operator_version,
+        index_image or "<none>",
+        nightly,
+    )
+
+    await _prepare_non_prod_catalog(cli, env, catalog_source, index_image, nightly, start, deadline)
+
+    logger.info("[OSP Setup] [1/5 Check] Checking if operator is already installed...")
+    if await _is_osp_installed(cli):
+        logger.info("[OSP Setup] [1/5 Check] Operator already installed with CSV Succeeded.")
+    else:
+        await _install_operator(cli, channel, catalog_source, operator_version, nightly, start, deadline)
+
+    await _validate_post_install(cli, start, deadline)
 
     total_elapsed = int(time.monotonic() - start)
     logger.info("[OSP Setup] ===== OpenShift Pipelines operator setup complete (%ds) =====", total_elapsed)
@@ -236,6 +495,10 @@ def ensure_osp_installed(
 ) -> None:
     from framework.cli.openshift_cli import derive_api_url_from_console_url
     from framework.fixtures.async_bridge import run_async
+
+    if not config.install_pipelines_operator:
+        logger.info("[OSP Setup] INSTALL_PIPELINES_OPERATOR is not true, skipping operator installation.")
+        return
 
     async def _setup() -> None:
         logger.info("[OSP Setup] [0/5 Login] Checking CLI authentication...")
@@ -259,6 +522,6 @@ def ensure_osp_installed(
             ), f"CLI login failed against {api_url}"
             logger.info("[OSP Setup] [0/5 Login] Logged in successfully.")
 
-        await _ensure_osp(openshift_cli, config.osp_channel)
+        await _ensure_osp(openshift_cli, config)
 
     run_async(playwright_event_loop, _setup())
