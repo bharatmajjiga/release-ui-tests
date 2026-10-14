@@ -26,6 +26,7 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 import yaml
 
 from framework.agent import locator_registry as registry
+from framework.agent.audit_map import audit
 from framework.agent.verify_locators import detect_version, verify_pages
 
 MAP_PATH = Path(__file__).resolve().parents[2] / ".agent" / "sweep" / "page_map.yaml"
@@ -156,6 +157,7 @@ def summarise(
     drifted: List[Tuple[str, str, str, str]] = []
     unreachable: List[str] = []
     weak_ready: List[Tuple[str, List[str]]] = []
+    hidden_only: List[Tuple[str, List[str]]] = []
 
     for key, entry in pages.items():
         if entry["error"]:
@@ -165,7 +167,11 @@ def summarise(
             weak_ready.append((key, entry["recovered_on_recheck"]))
         results = entry["results"]
         total += len(results)
-        missing, ambiguous, _ = classify(results, set(by_key[key]["conditional"]))
+        conditional = set(by_key[key]["conditional"])
+        missing, ambiguous, hidden = classify(results, conditional)
+        unexpected_hidden = [n for n in hidden if n not in conditional]
+        if unexpected_hidden:
+            hidden_only.append((key, unexpected_hidden))
         cls = by_key[key]["locator_class"].split(":")[-1]
         for name in missing:
             drifted.append((cls, name, results[name]["selector"], "matches nothing"))
@@ -182,6 +188,7 @@ def summarise(
     print(f"  skipped         {sum(len(v) for v in skipped.values())} (need an interaction first)")
 
     _print_weak_ready(weak_ready)
+    _print_hidden(hidden_only)
     _print_unreachable(unreachable, by_key)
     _print_drifted(drifted)
 
@@ -195,6 +202,17 @@ def _print_weak_ready(weak_ready: List[Tuple[str, List[str]]]) -> None:
     print("on a second read, so the page was still painting when first probed. Fix the")
     print("page map: point `ready` at the element the probes actually need.")
     for key, names in weak_ready:
+        print(f"  {key:<34} {', '.join(names[:5])}{' ...' if len(names) > 5 else ''}")
+
+
+def _print_hidden(hidden_only: List[Tuple[str, List[str]]]) -> None:
+    if not hidden_only:
+        return
+    total = sum(len(v) for _, v in hidden_only)
+    print(f"\nPRESENT BUT NOT VISIBLE ({total}) - these resolve, so they are not drift, but any")
+    print("click or visibility assertion on them will fail. Mark them conditional if that is")
+    print("expected, otherwise the locator is pointing at the wrong element.")
+    for key, names in hidden_only:
         print(f"  {key:<34} {', '.join(names[:5])}{' ...' if len(names) > 5 else ''}")
 
 
@@ -233,9 +251,18 @@ def main() -> int:
         ),
     )
     parser.add_argument("--headed", action="store_true", help="Show the browser")
+    parser.add_argument("--skip-audit", action="store_true", help="Sweep even if the page map fails its audit")
     parser.add_argument("--json", type=Path, help="Write the full result set here")
     parser.add_argument("--save", action="store_true", help="Record passing locators in the registry")
     args = parser.parse_args()
+
+    if not args.skip_audit and audit(args.map) != 0:
+        print(
+            "\nRefusing to sweep: a page-map entry points at the wrong page, so correct "
+            "locators would be reported as drift.\nFix the mapping, or pass --skip-audit.",
+            file=sys.stderr,
+        )
+        return 2
 
     page_map = yaml.safe_load(args.map.read_text())
     specs, skipped = build_specs(page_map, args.only, args.namespace)

@@ -165,7 +165,22 @@ Useful flags: `--only <substr>` to sweep a subset, `--json out.json` for full re
 anything drifted or a page was unreachable.
 
 `.agent/sweep/page_map.yaml` maps each locator class to a live URL. When you add a
-locator class, add it there too or it is never checked. Three fields prevent false drift:
+locator class, add it there too or it is never checked.
+
+**Map by what the page object verifies, never by name.** The sweep refuses to run if a
+mapping is wrong, because probing the wrong page finds correct locators "missing" and
+acting on that report breaks working tests:
+
+```bash
+python -m framework.agent.audit_map     # also runs automatically before every sweep
+```
+
+This is not hypothetical. `OverViewPageLocators` was once mapped to `/pipelines-overview`
+because the names matched; it actually describes the console home page, whose page object
+waits for a URL ending in `dashboards`. The sweep duly reported its correct `h1` header as
+drift, the "fix" to `h2` was applied, and every test in the suite failed at login.
+
+Three more fields prevent false drift:
 
 - **`ready`** must be the element the probes depend on. For a list page that is the
   *table* — never the empty-state, which renders seconds earlier and makes every
@@ -177,6 +192,26 @@ locator class, add it there too or it is never checked. Three fields prevent fal
 
 A page reported `UNREACHABLE` means the seed is missing or the route changed — fix that
 before reading anything else in the report, since its locators were never probed.
+
+## Verifying a locator change actually works
+
+Probing proves a selector resolves; it does not prove the test passes. After changing
+any locator, run the project's sanity suite:
+
+```bash
+pytest -m sanity
+```
+
+Use a single node id only to reproduce one specific failure, never as the evidence that
+a change is good. `python -m framework.agent.diagnose` defaults to the sanity suite for
+this reason, and turns a failure into a verdict:
+
+| Verdict | Meaning |
+|---|---|
+| `locator_absent` | re-probed live and matched nothing - the locator really is wrong |
+| `locator_present` | re-probed live and DID match - **do not touch the locator**, it is timing or state |
+| `data` / `assertion` | test data, or possibly a real product bug - read before changing |
+| `timing_unverified` | could not re-probe; establish the page's ready signal first |
 
 ## Hard rules
 

@@ -276,8 +276,11 @@ pages:
 
   # ---------- Overview / shared chrome ----------
   - key: overview
+    # OverViewPage.verify_on_page() waits for a URL ending in "dashboards": this class
+    # describes the console home page, NOT /pipelines-overview. Mapping it there once
+    # caused a correct locator to be "fixed" into a broken one.
     locators: framework.locators.overview:OverViewPageLocators
-    url: /pipelines-overview/ns/{ns}
+    url: /dashboards
     ready: overview
     # The guided tour only appears for a user who has not dismissed it.
     conditional: [SKIP_TOUR_BUTTON]

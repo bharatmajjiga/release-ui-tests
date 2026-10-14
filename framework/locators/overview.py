@@ -4,7 +4,7 @@
 class OverViewPageLocators:
     """Locators for the Overview Page"""
 
-    OVERVIEW_HEADER = 'h2:has-text("Overview")'
+    OVERVIEW_HEADER = 'h1:has-text("Overview")'
     SKIP_TOUR_BUTTON = 'button:has-text("Skip tour")'
 
 
