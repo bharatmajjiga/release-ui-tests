@@ -21,14 +21,39 @@ exec/
 .env.*
 !.env.example
 
-# Ignore all files with the .md extension
-*.md
+# Markdown is documentation by default. A blanket *.md rule used to hide all of it -
+# including docs/, the Claude skills, and the test plans - so scratch paths are named
+# individually instead.
 
-# Exception for documentation files (the ! prefix negates the ignore rule)
-!readme.md
+# Virtualenvs and caches (these carry their own markdown)
+.venv/
+venv/
+.pytest_cache/
 
-# Claude Code skills are source, not scratch notes - they must be shared
-!.claude/skills/**/*.md
+# Generated, not written: a point-in-time snapshot that goes stale immediately
+docs/qa-forge-agent-architecture.html
+openshift-console-snapshot.md
+
+# Manual test plans - kept locally, not versioned (the index goes with them, or it
+# would be a contents page for files that are not in the repo)
+test_plans/
+MANUAL_TEST_PLAN_INDEX.md
+
+# Work notes tied to one ticket or refactor, not reference documentation
+tests/SOLID_REORGANIZATION_PROPOSAL.md
+tests/SOLID_REORGANIZATION_COMPLETE.md
+tests/CHANGES_SUMMARY.md
+CLI_LOGIN_GUIDE.md
+CODE_REVIEW_SRVKP-11541.md
+CODE_REVIEW_SRVKP-11543.md
+SRVKP-9273.md
+SRVKP-9276.md
+MONACO_EDITOR_FIX_OCP418.md
+MONACO_CONTENT_REPLACEMENT_FIX.md
+MONACO_EDITOR_REFACTORING.md
+TEST_GENERATION_SYSTEM_READY.md
+otel_markdown.md
+otel_readme.md
 
 # temp files
 tmp/
