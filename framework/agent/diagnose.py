@@ -66,9 +66,15 @@ def parse_failure(output: str) -> Dict[str, Any]:
 
     # Playwright escapes the inner quotes when it echoes the selector into the call
     # log; probing the escaped form would fail as a malformed selector, not a missing one.
-    selectors = [m.group(2) for m in CALLLOG_SELECTOR_RE.finditer(output)]
-    selectors += MARKER_SELECTOR_RE.findall(output)
-    selectors += HEADER_SELECTOR_RE.findall(output)
+    # Order matters: the consumer acts on the first entry. A run collects every selector
+    # that timed out, including incidental ones (the "Skip tour" popup is absent on every
+    # healthy page), so the most proximate cause must come first:
+    #   1. named in the assertion the test died on
+    #   2. in Playwright's call log for the raising call
+    #   3. logged timeouts, latest first - the last wait before the failure
+    selectors = HEADER_SELECTOR_RE.findall(output)
+    selectors += [m.group(2) for m in CALLLOG_SELECTOR_RE.finditer(output)]
+    selectors += list(reversed(MARKER_SELECTOR_RE.findall(output)))
     # Playwright escapes inner quotes when echoing a selector; probing the escaped form
     # would fail as malformed rather than missing.
     selectors = [s.replace('\\"', '"').replace("\\'", "'").strip() for s in selectors]
