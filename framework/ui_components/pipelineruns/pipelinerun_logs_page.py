@@ -153,10 +153,10 @@ class PipelineRunLogsPage(PipelineRunBasePage):
         task_links = await self.page.locator(self.locators.TASK_LINK).all()
         task_names = []
         for link in task_links:
-            text = await link.inner_text()
-            # Remove any whitespace and extract just the task name
-            task_name = text.strip()
-            if task_name:
+            # The console renders each nav entry twice, so the same task would
+            # otherwise be reported once per copy.
+            task_name = (await link.inner_text()).strip()
+            if task_name and task_name not in task_names:
                 task_names.append(task_name)
         return task_names
 

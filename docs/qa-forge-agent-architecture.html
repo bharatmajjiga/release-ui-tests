@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Forge Agent - Architecture & AI Engineering Concepts</title>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #232733;
+    --border: #2e3340;
+    --text: #e1e4ed;
+    --text-dim: #8b90a0;
+    --accent: #6c8cff;
+    --accent2: #a78bfa;
+    --green: #4ade80;
+    --orange: #fb923c;
+    --red: #f87171;
+    --cyan: #22d3ee;
+    --pink: #f472b6;
+    --yellow: #facc15;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  h1 {
+    font-size: 2.2rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.5rem;
+  }
+
+  h2 {
+    font-size: 1.5rem;
+    color: var(--accent);
+    margin: 2.5rem 0 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  h3 {
+    font-size: 1.15rem;
+    color: var(--accent2);
+    margin: 1.5rem 0 0.5rem;
+  }
+
+  .subtitle {
+    color: var(--text-dim);
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+  }
+
+  /* ---- Big Picture Diagram ---- */
+  .big-picture {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 2rem;
+    margin: 2rem 0;
+    overflow-x: auto;
+  }
+
+  .big-picture pre {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--text);
+    white-space: pre;
+  }
+
+  /* ---- Layer Cards ---- */
+  .layer-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .layer-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    transition: border-color 0.2s;
+  }
+
+  .layer-card:hover { border-color: var(--accent); }
+
+  .layer-num {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 28px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-right: 0.5rem;
+  }
+
+  .layer-card .title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .analogy {
+    background: var(--surface2);
+    border-left: 3px solid var(--accent2);
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.95rem;
+  }
+
+  .analogy strong { color: var(--accent2); }
+
+  .example {
+    background: var(--surface2);
+    border-left: 3px solid var(--green);
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.92rem;
+  }
+
+  .example strong { color: var(--green); }
+
+  .your-project {
+    background: var(--surface2);
+    border-left: 3px solid var(--cyan);
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0;
+    border-radius: 0 6px 6px 0;
+    font-size: 0.92rem;
+  }
+
+  .your-project strong { color: var(--cyan); }
+
+  code {
+    background: var(--surface2);
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.88rem;
+    color: var(--orange);
+  }
+
+  /* ---- Concept Cards ---- */
+  .concept-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 1rem;
+    margin: 1.5rem 0;
+  }
+
+  .concept {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+  }
+
+  .concept .term {
+    color: var(--yellow);
+    font-weight: 700;
+    font-size: 1rem;
+    margin-bottom: 0.3rem;
+  }
+
+  .concept .def {
+    font-size: 0.92rem;
+    color: var(--text-dim);
+    margin-bottom: 0.4rem;
+  }
+
+  .concept .eg {
+    font-size: 0.88rem;
+    color: var(--text);
+  }
+
+  /* ---- Flow Diagrams ---- */
+  .flow {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem 2rem;
+    margin: 1.5rem 0;
+    overflow-x: auto;
+  }
+
+  .flow pre {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    white-space: pre;
+  }
+
+  .flow-label {
+    font-size: 0.85rem;
+    color: var(--text-dim);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* ---- Table ---- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.92rem;
+  }
+
+  th {
+    background: var(--surface2);
+    text-align: left;
+    padding: 0.6rem 1rem;
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+  }
+
+  .tag-have { background: #166534; color: #4ade80; }
+  .tag-build { background: #713f12; color: #facc15; }
+  .tag-new { background: #7c2d12; color: #fb923c; }
+
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1.5rem 0;
+  }
+
+  .toc a {
+    color: var(--accent);
+    text-decoration: none;
+    display: block;
+    padding: 0.2rem 0;
+  }
+
+  .toc a:hover { text-decoration: underline; }
+
+  hr { border: none; border-top: 1px solid var(--border); margin: 2.5rem 0; }
+
+  .phase-timeline {
+    position: relative;
+    padding-left: 2rem;
+    margin: 1.5rem 0;
+  }
+
+  .phase-timeline::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+
+  .phase-item {
+    position: relative;
+    margin-bottom: 1.5rem;
+    padding-left: 1rem;
+  }
+
+  .phase-item::before {
+    content: '';
+    position: absolute;
+    left: -1.55rem;
+    top: 0.55rem;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid var(--accent);
+    background: var(--bg);
+  }
+
+  .phase-item .phase-label {
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 0.95rem;
+  }
+</style>
+</head>
+<body>
+
+<h1>QA Forge Agent</h1>
+<p class="subtitle">Architecture Guide + AI Engineering Concepts for Beginners</p>
+
+<div class="toc">
+  <strong>Table of Contents</strong>
+  <a href="#big-picture">1. The Big Picture (Full Architecture Diagram)</a>
+  <a href="#human-body">2. The Human Body Analogy</a>
+  <a href="#nine-layers">3. All 9 Layers Explained (with concepts)</a>
+  <a href="#agent-loop">4. The Agent Loop (How it thinks and acts)</a>
+  <a href="#locator-flow">5. The Locator Verification Flow</a>
+  <a href="#glossary">6. AI Engineering Glossary (A-Z)</a>
+  <a href="#phases">7. Build Phases</a>
+  <a href="#your-project">8. Mapping to Your Project</a>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="big-picture">1. The Big Picture</h2>
+<p>This is the full agent architecture. Every box is something we build or connect. Read top to bottom.</p>
+
+<div class="big-picture">
+<pre>
+  YOU (or CI)
+    |
+    |  "Write a test for creating a Task via YAML"    <-- This is the <span style="color:#facc15">INTENT</span>
+    v
+ ┌──────────────────────────────────────────────────────────────────────────────┐
+ |                                                                              |
+ |   <span style="color:#6c8cff;font-weight:bold">QA FORGE AGENT</span>  (Layer 1: Harness)                                        |
+ |   The brain + hands. Runs the loop: Orient -> Plan -> Act -> Verify -> Heal  |
+ |                                                                              |
+ |   ┌────────────────────────────────────────────────────────────────────────┐  |
+ |   |  <span style="color:#facc15">ORIENT</span>                                                               |  |
+ |   |  "What pages are involved? What locators exist? What tests exist?"    |  |
+ |   |                                                                       |  |
+ |   |  Reads from:                                                          |  |
+ |   |  ┌─────────────────┐  ┌───────────────────┐  ┌────────────────────┐   |  |
+ |   |  | <span style="color:#a78bfa">Memory</span>          |  | <span style="color:#22d3ee">RAG</span>               |  | <span style="color:#fb923c">Codebase</span>         |   |  |
+ |   |  | (Layer 2)       |  | (Layer 3)          |  | (grep/read)        |   |  |
+ |   |  |                 |  |                    |  |                    |   |  |
+ |   |  | Locator Registry|  | Product Docs       |  | Existing tests     |   |  |
+ |   |  | Failure History |  | (NotebookLM)       |  | Existing POMs      |   |  |
+ |   |  | Conventions     |  | Framework Patterns |  | Existing locators  |   |  |
+ |   |  └─────────────────┘  └───────────────────┘  └────────────────────┘   |  |
+ |   └────────────────────────────────────────────────────────────────────────┘  |
+ |                                         |                                    |
+ |                                         v                                    |
+ |   ┌────────────────────────────────────────────────────────────────────────┐  |
+ |   |  <span style="color:#facc15">PLAN</span>                                                                |  |
+ |   |  "I need 3 locators, 1 new POM method, 1 step definition, 1 feature" |  |
+ |   |  Uses: <span style="color:#f472b6">Skills</span> (Layer 5) - test-planner, locator-planner              |  |
+ |   └────────────────────────────────────────────────────────────────────────┘  |
+ |                                         |                                    |
+ |                                         v                                    |
+ |   ┌────────────────────────────────────────────────────────────────────────┐  |
+ |   |  <span style="color:#facc15">ACT</span>                                                                 |  |
+ |   |  Actually generates the code and extracts locators                    |  |
+ |   |                                                                       |  |
+ |   |  Uses <span style="color:#4ade80">MCP Tools</span> (Layer 4):                                           |  |
+ |   |  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                |  |
+ |   |  | <span style="color:#4ade80">Playwright</span>   |  | <span style="color:#4ade80">File System</span>  |  | <span style="color:#4ade80">Shell/CLI</span>    |                |  |
+ |   |  |              |  |              |  |              |                |  |
+ |   |  | Navigate UI  |  | Write tests  |  | Run oc cmds  |                |  |
+ |   |  | Get locators |  | Write POMs   |  | Git commands |                |  |
+ |   |  | Screenshots  |  | Write data   |  |              |                |  |
+ |   |  └──────────────┘  └──────────────┘  └──────────────┘                |  |
+ |   └────────────────────────────────────────────────────────────────────────┘  |
+ |                                         |                                    |
+ |                                         v                                    |
+ |   ┌────────────────────────────────────────────────────────────────────────┐  |
+ |   |  <span style="color:#facc15">VERIFY</span>                                                              |  |
+ |   |  Run the test. Did it pass?                                           |  |
+ |   |                                                                       |  |
+ |   |  <span style="color:#f472b6">Skills</span>: test-runner, locator-verifier, stability-checker             |  |
+ |   |  <span style="color:#f87171">Guardrails</span> (Layer 6): Max retries, confidence checks, blast radius   |  |
+ |   |  <span style="color:#facc15">Evals</span> (Layer 7): Score accuracy, log results                         |  |
+ |   |                                                                       |  |
+ |   |  Result:  PASS (3/3 stable) ──> DONE, save to memory                  |  |
+ |   |           FAIL ──────────────> go to HEAL                             |  |
+ |   └────────────────────────────────────────────────────────────────────────┘  |
+ |                                         |                                    |
+ |                                    FAIL |                                    |
+ |                                         v                                    |
+ |   ┌────────────────────────────────────────────────────────────────────────┐  |
+ |   |  <span style="color:#facc15">HEAL</span>                                                                |  |
+ |   |  Classify the failure, fix it, retry                                  |  |
+ |   |                                                                       |  |
+ |   |  Failure types:                                                       |  |
+ |   |  <span style="color:#f87171">Locator wrong</span>  --> Re-extract from live UI via Playwright MCP        |  |
+ |   |  <span style="color:#fb923c">Timing issue</span>   --> Add/adjust waits                                 |  |
+ |   |  <span style="color:#facc15">Logic error</span>    --> Fix step code                                    |  |
+ |   |  <span style="color:#a78bfa">Data problem</span>   --> Fix test data YAML                               |  |
+ |   |  <span style="color:#4ade80">Real bug</span>       --> STOP. Report to human. Don't mask it.             |  |
+ |   |                                                                       |  |
+ |   |  Retry <= 3 times, then ESCALATE                                      |  |
+ |   └────────────────────────────────────────────────────────────────────────┘  |
+ |                                         |                                    |
+ |                                         v                                    |
+ |   ┌────────────────────────────────────────────────────────────────────────┐  |
+ |   |  <span style="color:#facc15">LEARN</span>                                                               |  |
+ |   |  Save what worked (and what didn't) to persistent memory              |  |
+ |   |  Update locator registry, failure patterns, conventions               |  |
+ |   └────────────────────────────────────────────────────────────────────────┘  |
+ |                                                                              |
+ └──────────────────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="human-body">2. The Human Body Analogy</h2>
+<p>The LinkedIn post mapped AI systems to body parts. Here's how each maps to QA Forge:</p>
+
+<div class="big-picture">
+<pre>
+                       <span style="color:#6c8cff;font-weight:bold">THE QA FORGE "BODY"</span>
+
+    ┌──────────────────────────────────────────────────────────────────┐
+    |                                                                  |
+    |          <span style="color:#facc15">BRAIN</span>  =  Claude (LLM)                                  |
+    |          Understands language, reasons, writes code              |
+    |          But it can HALLUCINATE (make things up)                 |
+    |                                                                  |
+    |     ┌────────────────────────────────────────────────────┐       |
+    |     |                                                    |       |
+    |     |   <span style="color:#a78bfa">LIBRARY</span>  =  RAG + Memory                        |       |
+    |     |   Product docs, past failures, locator registry    |       |
+    |     |   "The brain checks the library before speaking"   |       |
+    |     |                                                    |       |
+    |     |   Without it: Brain GUESSES locators               |       |
+    |     |   With it:    Brain KNOWS locators                 |       |
+    |     |                                                    |       |
+    |     └────────────────────────────────────────────────────┘       |
+    |                                                                  |
+    |     ┌──────────────────────┐  ┌────────────────────────┐        |
+    |     |                      |  |                        |        |
+    |     |  <span style="color:#22d3ee">NERVOUS SYSTEM</span>      |  |  <span style="color:#f472b6">MUSCLE MEMORY</span>         |        |
+    |     |  = MCP (tools)       |  |  = Skills              |        |
+    |     |                      |  |                        |        |
+    |     |  Playwright: eyes    |  |  "How to write a       |        |
+    |     |  File system: hands  |  |   BDD test" - doesn't  |        |
+    |     |  CLI: voice          |  |   need to re-learn     |        |
+    |     |                      |  |   every time"          |        |
+    |     └──────────────────────┘  └────────────────────────┘        |
+    |                                                                  |
+    |     ┌──────────────────────┐  ┌────────────────────────┐        |
+    |     |                      |  |                        |        |
+    |     |  <span style="color:#f87171">IMMUNE SYSTEM</span>       |  |  <span style="color:#4ade80">HANDS</span>                 |        |
+    |     |  = Guardrails        |  |  = Agent Loop          |        |
+    |     |                      |  |                        |        |
+    |     |  "Don't delete       |  |  Plans steps,          |        |
+    |     |   passing tests"     |  |  takes actions,        |        |
+    |     |  "Stop after 3       |  |  makes decisions       |        |
+    |     |   retries"           |  |                        |        |
+    |     |  "Report bugs,       |  |  THIS is what makes    |        |
+    |     |   don't hide them"   |  |  it an AGENT vs just   |        |
+    |     |                      |  |  an assistant          |        |
+    |     └──────────────────────┘  └────────────────────────┘        |
+    |                                                                  |
+    └──────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="nine-layers">3. All 9 Layers Explained</h2>
+<p>Each layer includes: what it is, a real-world analogy, an example from YOUR project, and the AI engineering concepts it introduces.</p>
+
+<div class="layer-grid">
+
+  <!-- Layer 1 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--accent);color:var(--bg)">1</span>
+      Harness (The Agent Loop)
+    </div>
+    <p>The harness is the <strong>execution loop</strong> that lets an LLM act in the real world. Without it, an LLM just answers questions. With it, the LLM can plan steps, use tools, observe results, and decide what to do next.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> A chef reading a recipe vs. actually cooking. The recipe is the LLM's knowledge. The kitchen (stove, pans, ingredients) is the harness. Without the kitchen, the chef just talks about food.
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> Claude Code itself IS a harness. It takes your message, lets Claude reason, call tools (Read, Edit, Bash), observe results, and decide the next step. The <code>Workflow</code> tool is a multi-agent harness.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong> The Orient &rarr; Plan &rarr; Act &rarr; Verify &rarr; Heal loop. The agent doesn't just generate test code &mdash; it runs it, sees the failure, fixes it, and retries.
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Agent Loop / ReAct Pattern</div>
+        <div class="def">A cycle of Reason &rarr; Act &rarr; Observe, repeated until the task is done.</div>
+        <div class="eg">Agent thinks "I need to find the button locator" (Reason) &rarr; navigates to OperatorHub via Playwright (Act) &rarr; sees the DOM structure (Observe) &rarr; "OK, the locator is <code>data-test=&quot;search-operatorhub&quot;</code>" (Reason) &rarr; writes it to code (Act)</div>
+      </div>
+      <div class="concept">
+        <div class="term">Tool Use / Function Calling</div>
+        <div class="def">The LLM doesn't browse the web or run code itself. It outputs a structured "tool call" (like a function call), the harness executes it, and returns the result.</div>
+        <div class="eg">Claude outputs: <code>{"tool": "Bash", "command": "pytest tests/"}</code>. Claude Code runs it and gives Claude the stdout/stderr. Claude never touched the terminal directly.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 2 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--accent2);color:var(--bg)">2</span>
+      Memory & State
+    </div>
+    <p><strong>State</strong> is what the agent is doing RIGHT NOW (current task, steps completed). <strong>Memory</strong> is what it remembers ACROSS tasks (past failures, learned conventions). Without memory, the agent makes the same mistakes every time.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> State = the page your book is open to. Memory = all the books you've ever read. A new conversation with Claude starts with a blank state, but memory lets it recall "last time I tried that locator, it failed."
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> Your <code>.claude/projects/.../memory/</code> directory is persistent memory. It survives across conversations. The messages in your current chat are state &mdash; they disappear when the context fills up.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong><br>
+      State: "I'm on heal attempt 2/3 for the Tasks list page test"<br>
+      Memory: <code>.agent/memory/locator_registry.json</code> stores verified locators per version so the agent never guesses locators it has already verified.
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Context Window</div>
+        <div class="def">The LLM's "working memory" &mdash; how much text it can see at once. Claude's context window is ~200K tokens. Anything outside it is invisible to the model.</div>
+        <div class="eg">If your conversation gets too long, older messages get compressed or dropped. That's why we need persistent file-based memory &mdash; the context window is temporary, files are permanent.</div>
+      </div>
+      <div class="concept">
+        <div class="term">Token</div>
+        <div class="def">The unit LLMs process. Roughly 1 token = 0.75 words. "Hello world" = 2 tokens. A 500-line Python file &asymp; 2,000 tokens. You pay per token (input + output).</div>
+        <div class="eg">Claude Sonnet costs ~$3/million input tokens, $15/million output tokens. A 10-step agent run might use 50K-200K tokens total. Context management (what you put in the prompt) directly affects cost.</div>
+      </div>
+      <div class="concept">
+        <div class="term">Prompt Caching</div>
+        <div name="def" class="def">Reusing previously processed prompt content to save time and money. If you send the same system prompt repeatedly, the provider caches it so only new content is processed.</div>
+        <div class="eg">Claude Code uses a 5-minute cache TTL. If you respond within 5 minutes, the previous context is cached (faster + cheaper). After 5 minutes, it reprocesses everything.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 3 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--cyan);color:var(--bg)">3</span>
+      RAG (Retrieval-Augmented Generation)
+    </div>
+    <p>RAG means: before the LLM generates an answer, it <strong>retrieves</strong> relevant documents and includes them in the prompt. This way the LLM answers based on YOUR data, not just its training data.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> Imagine an exam where you're allowed to bring a cheat sheet. RAG is the cheat sheet &mdash; the student (LLM) is smart, but the cheat sheet (retrieved docs) ensures they give answers specific to YOUR course, not generic textbook answers.
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> Your <code>bdd-test-code-generator</code> skill queries NotebookLM (<code>notebook_query</code>) to get Tekton-specific knowledge before generating tests. That's RAG &mdash; retrieving product docs at generation time.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong> 4-tier retrieval priority:<br>
+      1. Locator Registry (verified) &rarr; 2. Framework codebase (grep) &rarr; 3. Product docs (NotebookLM) &rarr; 4. Live UI extraction (Playwright)<br>
+      The agent tries the fastest, most reliable source first. Only hits the live UI if nothing else has the answer.
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Hallucination</div>
+        <div class="def">When the LLM confidently generates something that looks correct but is factually wrong. LLMs are pattern completers &mdash; they predict what text SHOULD come next, not what's TRUE.</div>
+        <div class="eg">Claude generates <code>data-test="pipeline-create-btn"</code> because it looks right based on patterns. But the actual element is <code>data-test="item-create"</code>. That's a hallucinated locator.</div>
+      </div>
+      <div class="concept">
+        <div class="term">Grounding</div>
+        <div class="def">Connecting the LLM's output to real, verifiable data sources. The opposite of hallucination. RAG is a grounding technique.</div>
+        <div class="eg">Instead of guessing the locator, the agent navigates to the page via Playwright, extracts the actual DOM, and uses the REAL <code>data-test</code> attribute. That's grounding &mdash; the locator comes from reality, not imagination.</div>
+      </div>
+      <div class="concept">
+        <div class="term">Embedding / Vector Search</div>
+        <div class="def">A way to find "similar" content. Text is converted to numbers (vectors), and math finds the closest match. Not all RAG uses this &mdash; keyword search works too.</div>
+        <div class="eg">NotebookLM uses embeddings internally. When you query "Tekton Task YAML structure", it finds the most semantically similar paragraphs in your uploaded docs, even if they don't contain those exact words.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 4 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--green);color:var(--bg)">4</span>
+      MCP (Model Context Protocol)
+    </div>
+    <p>MCP is a <strong>standard interface</strong> for connecting LLMs to external tools and data sources. Think of it as USB for AI &mdash; one plug that works with any tool, any model.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> Before USB, every device had its own cable (printer cable, mouse cable, keyboard cable). USB standardized the plug. Before MCP, every AI tool had its own integration code. MCP standardizes how AI talks to tools.
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> Your Playwright MCP server exposes tools like <code>browser_navigate</code>, <code>browser_snapshot</code>, <code>browser_click</code>. Claude doesn't need to know HOW Playwright works &mdash; it just calls the MCP tool and gets the result.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong><br>
+      <code>Playwright MCP</code> = eyes (see the UI)<br>
+      <code>File System</code> = hands (write code)<br>
+      <code>Shell/CLI</code> = voice (run commands)<br>
+      <code>NotebookLM MCP</code> = library card (look up product knowledge)
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Tool Schema</div>
+        <div class="def">A structured description of what a tool does, what parameters it accepts, and what it returns. The LLM reads this to know WHEN and HOW to use the tool.</div>
+        <div class="eg"><code>{"name": "browser_click", "params": {"selector": "string"}, "description": "Click an element on the page"}</code> &mdash; Claude reads this schema and knows it can call this tool with a CSS selector.</div>
+      </div>
+      <div class="concept">
+        <div class="term">MCP Server vs Client</div>
+        <div class="def">The MCP Server provides tools (e.g., Playwright exposes browser actions). The MCP Client uses tools (e.g., Claude Code calls those browser actions). One server can serve many clients.</div>
+        <div class="eg">Your Playwright MCP server runs as a process. Both Claude Code AND Cursor can connect to it as clients. Same tools, different IDEs. That's the "agnostic" part.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 5 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--pink);color:var(--bg)">5</span>
+      Skills (Reusable Know-How)
+    </div>
+    <p>A skill is a <strong>packaged set of instructions</strong> saved as a file. Only the name and description are loaded into context &mdash; the full instructions load only when the skill is invoked. This saves tokens.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> A recipe book's table of contents vs. the full recipe. You scan the titles (cheap &mdash; small context). Only when you decide to cook "Pasta Carbonara" do you open that page (load full skill). You don't read every recipe every time you enter the kitchen.
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> Your <code>.claude/skills/bdd-test-code-generator/</code> has a main skill file plus references. When you type <code>/bdd-test-code-generator</code>, only THEN does the full skill load. Otherwise Claude just sees the one-line description.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong> Skills are organized by agent loop phase:<br>
+      <code>orient/</code> &mdash; intent-parser, page-discoverer<br>
+      <code>act/</code> &mdash; locator-extractor, test-generator<br>
+      <code>verify/</code> &mdash; test-runner, locator-verifier<br>
+      <code>heal/</code> &mdash; failure-classifier, locator-healer<br>
+      <code>learn/</code> &mdash; pattern-recorder, locator-updater
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Progressive Disclosure</div>
+        <div class="def">Only loading detailed information when it's needed. Saves context window space and money. Critical for keeping agent costs manageable.</div>
+        <div class="eg">CLAUDE.md loads every turn (keep it small!). Skills load on-demand. References load when a skill says "read this file." Three tiers of detail, each loaded only when needed.</div>
+      </div>
+      <div class="concept">
+        <div class="term">System Prompt / Instructions</div>
+        <div class="def">The hidden instructions sent to the LLM before your message. They define the LLM's behavior, personality, and rules. You don't see them, but they shape every response.</div>
+        <div class="eg">CLAUDE.md content becomes part of the system prompt. Skills become part of it when invoked. The agent's "personality" (how it writes tests, what conventions it follows) lives here.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 6 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--red);color:var(--bg)">6</span>
+      Guardrails
+    </div>
+    <p>Guardrails are <strong>safety boundaries</strong> that prevent the agent from doing harmful things. They're the difference between a demo that impresses and a production system that's trustworthy.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> A self-driving car has guardrails: speed limits, lane boundaries, emergency braking. The car is smart enough to drive, but without guardrails it might drive off a cliff while "optimizing the route."
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> Claude Code's permission system is a guardrail. When a tool is risky (writing files, running commands), it asks you before proceeding. The <code>.claude/settings.json</code> allowlist controls which tools run automatically.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong><br>
+      &bull; Max 3 heal retries (prevents infinite loops)<br>
+      &bull; Only modify files under <code>tests/</code> and <code>framework/</code> (blast radius)<br>
+      &bull; Test must pass 3/3 runs before marking done (stability gate)<br>
+      &bull; If the failure looks like a real product bug, STOP and report (don't mask bugs)<br>
+      &bull; Token budget per task (cost control)
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Blast Radius</div>
+        <div class="def">How much damage an agent can do if something goes wrong. Smaller blast radius = safer. Achieved by limiting what files/systems the agent can touch.</div>
+        <div class="eg">QA Forge can write to <code>tests/</code> and <code>framework/locators/</code>. It CANNOT modify <code>conftest.py</code>, CI configs, or core framework code. If it goes haywire, the damage is contained.</div>
+      </div>
+      <div class="concept">
+        <div class="term">Escalation</div>
+        <div class="def">When the agent recognizes it can't solve the problem and hands control to a human instead of blindly retrying.</div>
+        <div class="eg">After 3 failed heal attempts, QA Forge stops and says: "I tried X, Y, Z. None worked. The failure appears to be [analysis]. Here's what I'd try next, but I need a human to decide."</div>
+      </div>
+      <div class="concept">
+        <div class="term">Human-in-the-Loop (HITL)</div>
+        <div class="def">A design pattern where a human reviews and approves critical decisions before the agent proceeds. Can be "always" (approval gate) or "sometimes" (escalation only).</div>
+        <div class="eg">Your current <code>bdd-test-code-healer</code> has an approval gate (HITL always). QA Forge removes HITL for the happy path but keeps it for escalation (HITL sometimes). The goal is zero intervention for routine tasks.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 7 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--yellow);color:var(--bg)">7</span>
+      Evals (Measuring Quality)
+    </div>
+    <p>Evals are <strong>automated tests for your AI</strong>. They measure whether the agent's output is good. Without evals, you're flying blind &mdash; you don't know if the agent is improving or getting worse over time.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> Evals are to AI what unit tests are to code. You wouldn't ship code without tests. Don't ship an agent without evals. The agent writes tests for your product &mdash; evals are the tests for the agent itself.
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> After the agent generates a test, the eval checks: Did all locators resolve to real elements? Did the test pass 3/3 runs? Does the code follow your naming conventions? Each gets a score.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong>
+
+      <table>
+        <tr><th>Eval</th><th>What it measures</th><th>Target</th></tr>
+        <tr><td>Locator accuracy</td><td>% of locators that work first try</td><td>&gt; 90%</td></tr>
+        <tr><td>First-pass success</td><td>% of tests passing without healing</td><td>&gt; 70%</td></tr>
+        <tr><td>Heal success rate</td><td>% of failures fixed in 3 tries</td><td>&gt; 85%</td></tr>
+        <tr><td>Stability score</td><td>% passing 3/3 consecutive runs</td><td>&gt; 95%</td></tr>
+        <tr><td>Convention compliance</td><td>% matching framework patterns</td><td>&gt; 95%</td></tr>
+      </table>
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Eval / Evaluation</div>
+        <div class="def">A test that scores AI output quality. Unlike unit tests (binary pass/fail), evals often produce scores (0-100) or grades (A-F). They can be automated or human-judged.</div>
+        <div class="eg">"Did the locator resolve?" is a binary eval. "How readable is the generated code?" is a scored eval (LLM-as-judge, where a second LLM scores the first one's output).</div>
+      </div>
+      <div class="concept">
+        <div class="term">LLM-as-Judge</div>
+        <div class="def">Using one LLM to evaluate another LLM's output. Cheaper and faster than human review, but less reliable. Good for scoring code quality, convention compliance, etc.</div>
+        <div class="eg">After QA Forge generates a test, a separate Claude call reviews: "Does this code follow the framework's POM pattern? Score 1-10." This is the judge scoring the worker.</div>
+      </div>
+      <div class="concept">
+        <div class="term">Regression (in AI context)</div>
+        <div class="def">When the agent used to do something well but stops doing it well. Evals catch regressions. Example: after adding a new skill, locator accuracy drops from 92% to 78%.</div>
+        <div class="eg">Week 1: 90% locator accuracy. Week 3: 75%. The eval trend shows something broke. Without evals, you'd only notice when tests start failing in CI.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 8 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--text-dim);color:var(--bg)">8</span>
+      A2A (Agent-to-Agent Protocol)
+    </div>
+    <p>A2A is a <strong>standard way for agents from different vendors to communicate</strong>. Like how HTTP lets any browser talk to any web server, A2A lets any agent hand off work to any other agent.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> Email. You use Gmail, your colleague uses Outlook. Different vendors, but the email protocol (SMTP) lets you communicate. A2A is SMTP for AI agents.
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> QA Forge generates tests. A separate "CI Agent" (maybe built by another team) runs them across 5 browser configurations. QA Forge hands off via A2A: "Here's the test file, run it on Chrome, Firefox, Safari."
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge:</strong> Not needed day one. Design for it by using standard I/O (JSON task files). When you're ready, A2A lets QA Forge talk to a CI agent, a code review agent, or a monitoring agent &mdash; even if they're built with different tools.
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Agent Card (A2A)</div>
+        <div class="def">A JSON file that describes what an agent can do, what inputs it accepts, and what outputs it produces. Other agents read this to know if/how to hand off work.</div>
+        <div class="eg"><code>{"name": "qa-forge", "skills": ["test-generation", "test-healing"], "input": "test-intent-string", "output": "test-results-json"}</code></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer 9 -->
+  <div class="layer-card">
+    <div class="title">
+      <span class="layer-num" style="background:var(--orange);color:var(--bg)">9</span>
+      Multi-Agent (Parallel Specialists)
+    </div>
+    <p>Instead of one agent doing everything, split the work among <strong>specialist agents</strong> coordinated by an <strong>orchestrator</strong>. Each specialist is simpler, faster, and better at its narrow task.</p>
+
+    <div class="analogy">
+      <strong>Analogy:</strong> A hospital. The receptionist (orchestrator) routes you to the right specialist (cardiologist, dermatologist). Each specialist is world-class at their one thing. Better than one "general doctor" trying to do everything.
+    </div>
+
+    <div class="example">
+      <strong>Example:</strong> Claude Code's <code>Agent</code> tool spawns sub-agents. The <code>Workflow</code> tool runs multiple agents in parallel. Your <code>/bdd-test-code-generator</code> could spawn a locator-extraction agent and a test-data-generation agent simultaneously.
+    </div>
+
+    <div class="your-project">
+      <strong>In QA Forge (batch mode):</strong><br>
+      Orchestrator receives: "Generate tests for all 5 Task pages"<br>
+      Spawns 5 parallel agents, one per page<br>
+      Each: extract locators &rarr; generate test &rarr; run &rarr; heal<br>
+      Orchestrator merges results, deduplicates shared step definitions
+    </div>
+
+    <h3>Concepts introduced:</h3>
+    <div class="concept-grid">
+      <div class="concept">
+        <div class="term">Orchestrator</div>
+        <div class="def">The "boss" agent that breaks a big task into smaller tasks and assigns them to specialist agents. It doesn't do the work itself &mdash; it coordinates.</div>
+        <div class="eg">QA Forge orchestrator: "Task 1: Extract locators for Tasks page (send to Locator Agent). Task 2: Generate test data (send to Data Agent). Task 3: Wait for both, then generate test code."</div>
+      </div>
+      <div class="concept">
+        <div class="term">Fan-out / Fan-in</div>
+        <div class="def">Fan-out: splitting one task into many parallel sub-tasks. Fan-in: collecting all results back together. The orchestrator does both.</div>
+        <div class="eg">Fan-out: "Extract locators from 5 pages" &rarr; 5 parallel agents. Fan-in: Collect all 5 locator sets, merge into one registry, resolve conflicts.</div>
+      </div>
+      <div class="concept">
+        <div class="term">Pipeline vs DAG</div>
+        <div class="def">Pipeline: steps run one after another (A &rarr; B &rarr; C). DAG (Directed Acyclic Graph): steps can run in parallel when they don't depend on each other (A &rarr; B+C &rarr; D).</div>
+        <div class="eg">Pipeline: extract locators &rarr; generate test &rarr; run test. DAG: (extract locators + generate test data) in parallel &rarr; generate test &rarr; run test. DAG is faster because independent steps overlap.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<h2 id="agent-loop">4. The Agent Loop in Detail</h2>
+<p>This is the heart of QA Forge. Every task follows this loop:</p>
+
+<div class="flow">
+<div class="flow-label">The Complete Agent Loop (with decision points)</div>
+<pre>
+  <span style="color:#facc15;font-weight:bold">INPUT</span>: "Write a test for creating a Task via YAML"
+    |
+    v
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  | <span style="color:#6c8cff;font-weight:bold">ORIENT</span> (Understand the task)                                           |
+  |                                                                         |
+  |  1. Parse intent: resource=Task, action=Create, method=YAML             |
+  |  2. Query memory: "Do I have verified locators for Create Task page?"   |
+  |  3. Check codebase: "Do step definitions for task creation exist?"       |
+  |  4. Query RAG: "What fields does a Tekton Task YAML need?"              |
+  |                                                                         |
+  |  <span style="color:#facc15">Concept: CHAIN OF THOUGHT</span>                                              |
+  |  The agent reasons step-by-step, not all at once.                       |
+  |  "First I need to know what pages are involved, THEN what locators      |
+  |   exist, THEN what code is missing."                                    |
+  └─────────────────────────────────────────────────────────────────────────┘
+    |
+    v
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  | <span style="color:#6c8cff;font-weight:bold">PLAN</span> (Decide what to do)                                               |
+  |                                                                         |
+  |  "I need:                                                               |
+  |   - 2 new locators (CREATE_BUTTON, YAML_EDITOR)                         |
+  |   - 1 POM method (click_create_task)                                    |
+  |   - 1 step definition (user creates task from YAML)                     |
+  |   - 1 test data file (simple_task.yaml)                                 |
+  |   - 1 feature file (task_creation.feature)"                             |
+  |                                                                         |
+  |  <span style="color:#facc15">Concept: PLANNING / DECOMPOSITION</span>                                     |
+  |  Breaking a complex task into smaller, manageable sub-tasks.            |
+  |  The agent doesn't try to write everything at once.                     |
+  └─────────────────────────────────────────────────────────────────────────┘
+    |
+    v
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  | <span style="color:#6c8cff;font-weight:bold">ACT</span> (Do the work)                                                      |
+  |                                                                         |
+  |  Step 1: <span style="color:#4ade80">Navigate to Create Task page via Playwright MCP</span>               |
+  |          browser_navigate("https://console.../tasks/ns/test")            |
+  |                                                                         |
+  |  Step 2: <span style="color:#4ade80">Take accessibility snapshot</span>                                    |
+  |          browser_snapshot() --> gets DOM tree with data-test attrs       |
+  |                                                                         |
+  |  Step 3: <span style="color:#4ade80">Extract REAL locators from snapshot</span>                              |
+  |          Found: data-test="item-create" (not the guessed one!)           |
+  |                                                                         |
+  |  Step 4: <span style="color:#4ade80">Generate code using verified locators</span>                            |
+  |          Write locators.py, POM, steps, feature file                     |
+  |                                                                         |
+  |  <span style="color:#facc15">Concept: GROUNDING</span>                                                     |
+  |  Every locator comes from the REAL UI, not from the LLM's imagination.  |
+  |  This is the #1 improvement over current approach.                      |
+  └─────────────────────────────────────────────────────────────────────────┘
+    |
+    v
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  | <span style="color:#6c8cff;font-weight:bold">VERIFY</span> (Test the work)                                                 |
+  |                                                                         |
+  |  1. <span style="color:#4ade80">Syntax check</span>: python -m py_compile *.py                            |
+  |  2. <span style="color:#4ade80">Collection check</span>: pytest --collect-only feature.feature              |
+  |  3. <span style="color:#4ade80">Run test</span>: pytest --headed -x feature.feature                        |
+  |  4. <span style="color:#4ade80">Stability check</span>: Run 3 times. All pass?                             |
+  |                                                                         |
+  |  <span style="color:#facc15">Concept: CONFIDENCE SCORE</span>                                              |
+  |  Each locator gets a confidence: 0.95 = verified on live UI,            |
+  |  0.5 = from docs only, 0.3 = guessed. Agent won't commit               |
+  |  code with any locator below 0.7.                                       |
+  |                                                                         |
+  |  Result: <span style="color:#4ade80">PASS 3/3</span> --> LEARN & DONE                                     |
+  |          <span style="color:#f87171">FAIL</span>     --> HEAL (below)                                      |
+  └─────────────────────────────────────────────────────────────────────────┘
+    |
+    | FAIL
+    v
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  | <span style="color:#6c8cff;font-weight:bold">HEAL</span> (Fix and retry)                              Attempt: <span style="color:#f87171">1</span>/3       |
+  |                                                                         |
+  |  1. <span style="color:#fb923c">Classify failure</span> (what kind of error?)                             |
+  |                                                                         |
+  |     ┌──────────────────────────────────────────────────────────────┐    |
+  |     | Error: "TimeoutError: locator('data-test=item-create')      |    |
+  |     |        resolved to 0 elements"                               |    |
+  |     |                                                              |    |
+  |     | Classification: <span style="color:#f87171">LOCATOR_NOT_FOUND</span>                           |    |
+  |     | Confidence: 0.9 (high confidence in classification)          |    |
+  |     └──────────────────────────────────────────────────────────────┘    |
+  |                                                                         |
+  |  2. <span style="color:#fb923c">Apply targeted fix</span>                                                 |
+  |     Re-navigate to page via Playwright MCP                              |
+  |     Re-extract locators from fresh snapshot                             |
+  |     Update code with new locator                                        |
+  |                                                                         |
+  |  3. <span style="color:#fb923c">Re-run test</span>                                                        |
+  |     Still fails? --> Attempt 2/3 (different fix strategy)               |
+  |     Passes? --> Run stability check (3/3) --> LEARN & DONE             |
+  |                                                                         |
+  |  <span style="color:#facc15">Concept: FAILURE CLASSIFICATION</span>                                       |
+  |  Don't apply the same fix to every error. A locator error needs         |
+  |  re-extraction. A timing error needs longer waits. A data error         |
+  |  needs YAML fixes. A logic error needs code changes.                    |
+  |  A REAL BUG needs human reporting, not agent fixing.                    |
+  └─────────────────────────────────────────────────────────────────────────┘
+    |
+    v
+  ┌─────────────────────────────────────────────────────────────────────────┐
+  | <span style="color:#6c8cff;font-weight:bold">LEARN</span> (Remember for next time)                                        |
+  |                                                                         |
+  |  1. Save verified locators to registry (with version + timestamp)       |
+  |  2. If healed: save failure pattern --> fix mapping                     |
+  |  3. Update eval scores (locator accuracy, first-pass rate)              |
+  |  4. If human corrected: save convention to memory                       |
+  |                                                                         |
+  |  <span style="color:#facc15">Concept: LOOP ENGINEERING / FLYWHEEL</span>                                  |
+  |  Every task makes the agent better at the NEXT task.                    |
+  |  More verified locators = fewer hallucinated locators.                  |
+  |  More failure patterns = faster healing.                                |
+  |  More conventions = better code on first try.                           |
+  |                                                                         |
+  |  This is the difference between an agent that stays dumb                |
+  |  and one that gets smarter over time.                                   |
+  └─────────────────────────────────────────────────────────────────────────┘
+</pre>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="locator-flow">5. The Locator Verification Flow</h2>
+<p>This is the specific flow that solves your #1 problem: wrong locators.</p>
+
+<div class="flow">
+<div class="flow-label">Before QA Forge (Current Problem)</div>
+<pre>
+  Claude's training data says:    "The create button is probably called 'create-btn'"
+                |
+                v
+  Claude generates:               <span style="color:#f87171">data-test="pipeline-create-btn"</span>   <-- HALLUCINATED
+                |
+                v
+  Test runs:                      <span style="color:#f87171">TimeoutError: 0 elements found</span>   <-- FAILS
+                |
+                v
+  You manually fix:               <span style="color:#4ade80">data-test="item-create"</span>          <-- THE REAL ONE
+</pre>
+</div>
+
+<div class="flow">
+<div class="flow-label">After QA Forge (The Fix)</div>
+<pre>
+  Agent needs a locator for the Create button
+                |
+                v
+  <span style="color:#6c8cff">CHECK REGISTRY</span>: "Do I already have a verified locator for this?"
+                |
+          ┌─────┴──────┐
+         YES           NO
+          |             |
+          v             v
+  Use cached locator   <span style="color:#22d3ee">NAVIGATE via Playwright MCP</span>
+  (confidence: 0.95)    browser_navigate("/tasks/ns/test")
+                              |
+                              v
+                        <span style="color:#22d3ee">TAKE SNAPSHOT</span>
+                        browser_snapshot()
+                              |
+                              v
+                        <span style="color:#22d3ee">EXTRACT from real DOM</span>
+                        Found: &lt;button data-test="item-create"&gt;Create&lt;/button&gt;
+                              |
+                              v
+                        <span style="color:#22d3ee">MAP TO FRAMEWORK CONVENTION</span>
+                        Your pattern: <code>CLASS.CONSTANT = 'selector'</code>
+                        Generated:  <code>CREATE_BUTTON = '[data-test="item-create"]'</code>
+                              |
+                              v
+                        <span style="color:#22d3ee">VERIFY</span>: Run page.locator(selector).count()
+                        Result: 1 element found  <span style="color:#4ade80">CONFIRMED</span>
+                              |
+                              v
+                        <span style="color:#22d3ee">SAVE TO REGISTRY</span>
+                        {"page": "tasks.list", "version": "4.22",
+                         "locator": "[data-test=\"item-create\"]",
+                         "confidence": 0.95, "verified": true}
+                              |
+                              v
+                        <span style="color:#4ade80">USE IN GENERATED CODE</span>  <-- NO HALLUCINATION
+
+  <span style="color:#facc15">KEY INSIGHT</span>: The locator came from the REAL UI, not from Claude's imagination.
+  Next time, it's in the registry -- no need to navigate again (until version changes).
+</pre>
+</div>
+
+<!-- ============================================================ -->
+<h2 id="glossary">6. AI Engineering Glossary (A-Z)</h2>
+<p>Every term used in QA Forge, explained simply with examples from your project.</p>
+
+<div class="concept-grid">
+
+  <div class="concept">
+    <div class="term">A2A (Agent-to-Agent)</div>
+    <div class="def">An open standard for agents to discover each other and hand off tasks, regardless of vendor.</div>
+    <div class="eg">QA Forge (Claude-based) hands test results to a CI Agent (maybe GPT-based). A2A makes cross-vendor handoffs possible.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Agent</div>
+    <div class="def">An LLM + tools + a loop. It can plan, act, observe, and decide. An assistant answers questions. An agent completes tasks.</div>
+    <div class="eg">ChatGPT answering "how do I test this?" = assistant. QA Forge writing the test, running it, fixing failures, and committing = agent.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Agent SDK</div>
+    <div class="def">A software library for building agents as code. Handles the loop, tool calling, and state management so you don't build it from scratch.</div>
+    <div class="eg">Claude Agent SDK (Python/TS) lets you define: agent name, system prompt, tools, and loop behavior. Then <code>agent.run("write a test")</code> does the rest.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Chain of Thought (CoT)</div>
+    <div class="def">Making the LLM "think step by step" before giving an answer. Improves accuracy on complex tasks.</div>
+    <div class="eg">"First, identify the page. Then, check for existing locators. Then, extract missing ones. Then, generate code." Each step builds on the previous one.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Confidence Score</div>
+    <div class="def">A number (0 to 1) indicating how sure the agent is about something. Used to decide whether to proceed or ask for help.</div>
+    <div class="eg">Locator verified on live UI = 0.95. Locator from docs only = 0.5. Locator guessed = 0.3. Threshold: don't use anything below 0.7.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Context Window</div>
+    <div class="def">The maximum amount of text (tokens) an LLM can process in one request. Claude = ~200K tokens. Everything outside is invisible.</div>
+    <div class="eg">If you paste a 10,000-line file and ask about line 1, Claude might "forget" the details of line 9,500. Context management = keeping important stuff visible.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Decomposition</div>
+    <div class="def">Breaking a complex task into smaller sub-tasks that are easier to solve individually.</div>
+    <div class="eg">"Write a test for Task CRUD" decomposes into: generate test data + extract locators + write POM methods + write steps + write feature.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Embedding</div>
+    <div class="def">Converting text into a list of numbers (vector) that captures meaning. Similar texts have similar vectors. Used for search.</div>
+    <div class="eg">"create a pipeline" and "make a new pipeline" have very different words but similar embeddings, so a vector search finds both.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Escalation</div>
+    <div class="def">The agent stops and asks a human when it can't solve a problem or when confidence drops too low.</div>
+    <div class="eg">After 3 failed heal attempts: "I can't fix this. The error suggests the Cancel button was removed in v4.22. Is this a UI change or a bug?"</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Eval (Evaluation)</div>
+    <div class="def">A test that measures AI output quality. The "unit tests" for your agent.</div>
+    <div class="eg">Locator accuracy eval: run 100 locator extractions, check what % match real elements. Target: >90%.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Fan-out / Fan-in</div>
+    <div class="def">Fan-out: split one task into many parallel tasks. Fan-in: collect results. The orchestration pattern for multi-agent.</div>
+    <div class="eg">Fan-out: extract locators from 5 pages simultaneously. Fan-in: merge 5 locator sets into one registry file.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Flywheel / Loop Engineering</div>
+    <div class="def">A self-reinforcing cycle where each task's output improves the next task's input. The agent gets better by doing.</div>
+    <div class="eg">Run 1: extract 20 locators, 15 correct (75%). Save all to registry. Run 2: 15 come from registry (100% correct), only 5 need extraction. Overall accuracy rises.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Grounding</div>
+    <div class="def">Connecting LLM output to verifiable real-world data. Prevents hallucination.</div>
+    <div class="eg">Instead of Claude imagining what the button's data-test attribute is, Playwright MCP navigates to the page and reads the actual DOM. That's grounding.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Guardrails</div>
+    <div class="def">Safety boundaries: what the agent CAN'T do, limits on retries, human approval gates, file access restrictions.</div>
+    <div class="eg">QA Forge guardrail: "Never delete an existing passing test." Even if the agent thinks it should, the guardrail blocks it.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Hallucination</div>
+    <div class="def">The LLM generates something that looks correct but is factually wrong. It's "pattern completing" not "truth telling."</div>
+    <div class="eg">Claude writes <code>[data-test="create-pipeline-btn"]</code> because it looks like the right CSS selector pattern. But the real attribute is <code>[data-test="item-create"]</code>.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Harness</div>
+    <div class="def">The infrastructure that wraps around the LLM: the loop, tool execution, state management, error handling.</div>
+    <div class="eg">Claude Code is a harness. The Agent SDK is a harness builder. QA Forge's Orient-Plan-Act-Verify-Heal loop is a custom harness.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Human-in-the-Loop (HITL)</div>
+    <div class="def">A human reviews and approves before the agent takes action. Can be "always" or "only on escalation."</div>
+    <div class="eg">Current: agent proposes a fix, you type "yes" to apply. Goal: agent fixes automatically, only asks human after 3 failures.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">LLM (Large Language Model)</div>
+    <div class="def">The AI model (Claude, GPT, etc.). Trained on internet text. Good at: understanding language, writing code, reasoning. Bad at: knowing YOUR specific product.</div>
+    <div class="eg">Claude knows Python, knows Playwright, knows Tekton concepts. But it doesn't know that YOUR OperatorHub card has <code>data-test="openshift-pipelines-operator-rh-custom-operators-openshift-marketplace"</code>.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">LLM-as-Judge</div>
+    <div class="def">Using one LLM call to evaluate another's output. Faster and cheaper than human review for routine quality checks.</div>
+    <div class="eg">After generating test code, a second Claude call scores it: "Convention compliance: 9/10. Missing: logger import. Locator pattern: correct."</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">MCP (Model Context Protocol)</div>
+    <div class="def">A standard for connecting LLMs to tools. Like USB for AI. One protocol, any tool, any model.</div>
+    <div class="eg">Playwright MCP exposes <code>browser_click(selector)</code>. Claude calls it through MCP. Tomorrow you could swap Claude for another model and the MCP tools still work.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Multi-Agent</div>
+    <div class="def">Multiple specialized agents working together, coordinated by an orchestrator. Each agent is expert at one thing.</div>
+    <div class="eg">Locator Agent (extracts DOM), Test Writer Agent (generates code), Healer Agent (fixes failures). Better than one agent doing everything.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Orchestrator</div>
+    <div class="def">The "boss" agent that breaks tasks into sub-tasks and assigns them to specialist agents.</div>
+    <div class="eg">QA Forge orchestrator: "Page 1 → Agent A, Page 2 → Agent B, Page 3 → Agent C. When all done, merge results."</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Progressive Disclosure</div>
+    <div class="def">Only loading information when needed. Saves context window space and cost.</div>
+    <div class="eg">Skill description loads always (1 line). Skill body loads on invoke (50 lines). Skill references load when the skill says to (200 lines). Three tiers.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Prompt Engineering</div>
+    <div class="def">Crafting the instructions you give to an LLM to get the best output. Includes system prompts, few-shot examples, formatting instructions.</div>
+    <div class="eg">Your CLAUDE.md is prompt engineering. Your skills are prompt engineering. The way you phrase "write a test" matters: "Write a BDD test using Scenario Outline with Examples table for Task creation" gets better output than "write a test for tasks."</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">RAG (Retrieval-Augmented Generation)</div>
+    <div class="def">Retrieve relevant documents first, then generate with them in context. The LLM answers based on YOUR data, not just training data.</div>
+    <div class="eg">Before generating a Task YAML, query NotebookLM: "What are required fields for a Tekton Task?" The response goes into the prompt, so Claude uses YOUR docs, not generic knowledge.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">ReAct Pattern</div>
+    <div class="def">Reason → Act → Observe, repeated. The standard agent loop. Named after a 2022 research paper.</div>
+    <div class="eg">Reason: "I need the Create button locator." Act: Navigate to Tasks page via Playwright. Observe: Snapshot shows <code>data-test="item-create"</code>. Reason: "Got it, now I'll write the locator class."</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Skill</div>
+    <div class="def">A saved set of instructions that the agent loads when a specific type of task is detected. Like a checklist for a specific procedure.</div>
+    <div class="eg"><code>/bdd-test-code-generator</code> is a skill. It has specific steps, references, and examples. It loads only when test generation is needed.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Temperature</div>
+    <div class="def">Controls randomness in LLM output. 0 = deterministic (same input → same output). 1 = creative (same input → different outputs each time).</div>
+    <div class="eg">For code generation: low temperature (0-0.2) — you want consistent, predictable code. For brainstorming test scenarios: higher temperature (0.5-0.7) — you want creative ideas.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Token</div>
+    <div class="def">The unit LLMs process text in. ~1 token = 0.75 words = ~4 characters. LLMs have a max token budget per request.</div>
+    <div class="eg"><code>"Hello, world!"</code> = 4 tokens. A 200-line Python file ≈ 1,000 tokens. Claude's 200K context = roughly 150,000 words.</div>
+  </div>
+
+  <div class="concept">
+    <div class="term">Tool Use / Function Calling</div>
+    <div class="def">The LLM can't directly run code, browse the web, or read files. Instead, it outputs a "call this tool with these parameters" instruction. The harness executes it.</div>
+    <div class="eg">Claude outputs: <code>Read(file="/framework/locators/tasks.py")</code>. Claude Code reads the file and shows Claude the content. Claude never touched the filesystem itself.</div>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<h2 id="phases">7. Build Phases</h2>
+<p>Ordered by impact. Each phase delivers a working improvement.</p>
+
+<div class="phase-timeline">
+
+  <div class="phase-item">
+    <div class="phase-label">Phase A: Locator Grounding (Week 1)</div>
+    <p>Wire Playwright MCP into the test generation flow. Every locator is extracted from the live UI and verified before use. Save verified locators to a registry file.</p>
+    <p><strong>Impact:</strong> Fixes ~70% of locator hallucination. The single biggest improvement.</p>
+    <p><strong>Concepts used:</strong> Grounding, MCP, Confidence Score, Progressive Disclosure</p>
+  </div>
+
+  <div class="phase-item">
+    <div class="phase-label">Phase B: Persistent Memory (Days 2-4)</div>
+    <p>Build the locator registry, failure pattern store, and convention memory. Agent remembers verified locators and past fixes across sessions.</p>
+    <p><strong>Impact:</strong> Second-time locator extraction drops to zero (cached). Heal time drops because patterns are recognized.</p>
+    <p><strong>Concepts used:</strong> Memory, Flywheel, Loop Engineering</p>
+  </div>
+
+  <div class="phase-item">
+    <div class="phase-label">Phase C: Autonomous Loop (Week 2)</div>
+    <p>Wire generator &rarr; runner &rarr; healer into one continuous loop. Remove approval gates for routine operations. Keep escalation for edge cases.</p>
+    <p><strong>Impact:</strong> Zero human intervention for standard test generation.</p>
+    <p><strong>Concepts used:</strong> Agent Loop, ReAct, Guardrails, Escalation, HITL</p>
+  </div>
+
+  <div class="phase-item">
+    <div class="phase-label">Phase D: Smart Healing (Week 3)</div>
+    <p>Build the failure classifier. Different fix strategies for locator errors vs timing errors vs data errors vs real bugs.</p>
+    <p><strong>Impact:</strong> Heal success rate jumps from ~60% to ~85%. Stops masking real product bugs.</p>
+    <p><strong>Concepts used:</strong> Failure Classification, Chain of Thought, Confidence Score</p>
+  </div>
+
+  <div class="phase-item">
+    <div class="phase-label">Phase E: Evals & Quality Tracking (Week 3-4)</div>
+    <p>Build the eval framework. Track locator accuracy, first-pass success, heal rate over time. Alert when quality drops.</p>
+    <p><strong>Impact:</strong> Know exactly how good the agent is. Catch regressions early.</p>
+    <p><strong>Concepts used:</strong> Eval, LLM-as-Judge, Regression Detection</p>
+  </div>
+
+  <div class="phase-item">
+    <div class="phase-label">Phase F: Portability (Week 4-5)</div>
+    <p>Package as a Claude Agent SDK agent. Same agent definition works in Claude Code (native), Cursor (MCP), and standalone (API).</p>
+    <p><strong>Impact:</strong> Tool-agnostic. Not locked to any IDE.</p>
+    <p><strong>Concepts used:</strong> Agent SDK, MCP, Tool Schema</p>
+  </div>
+
+  <div class="phase-item">
+    <div class="phase-label">Phase G: Multi-Agent & Batch (Week 5-6)</div>
+    <p>Orchestrator + specialist agents for batch operations. Fan-out across pages, fan-in results.</p>
+    <p><strong>Impact:</strong> "Generate tests for all 10 pages" runs in parallel, not sequentially.</p>
+    <p><strong>Concepts used:</strong> Multi-Agent, Orchestrator, Fan-out/Fan-in, DAG, A2A</p>
+  </div>
+
+</div>
+
+<!-- ============================================================ -->
+<h2 id="your-project">8. Mapping to Your Project</h2>
+<p>What you have today, what we're building, and what's new.</p>
+
+<table>
+  <tr>
+    <th>Layer</th>
+    <th>What you have</th>
+    <th>What we're building</th>
+    <th>Status</th>
+  </tr>
+  <tr>
+    <td>1. Harness</td>
+    <td>Claude Code (manual)</td>
+    <td>QA Forge autonomous loop</td>
+    <td><span class="tag tag-build">BUILD</span></td>
+  </tr>
+  <tr>
+    <td>2. Memory</td>
+    <td>CLAUDE.md memory (basic)</td>
+    <td>Locator registry + failure patterns + conventions</td>
+    <td><span class="tag tag-build">BUILD</span></td>
+  </tr>
+  <tr>
+    <td>3. RAG</td>
+    <td>NotebookLM (product docs)</td>
+    <td>+ UI structure DB + codebase search</td>
+    <td><span class="tag tag-have">EXTEND</span></td>
+  </tr>
+  <tr>
+    <td>4. MCP</td>
+    <td>Playwright MCP, File, Shell</td>
+    <td>Better integration (verify loop)</td>
+    <td><span class="tag tag-have">WIRE UP</span></td>
+  </tr>
+  <tr>
+    <td>5. Skills</td>
+    <td>bdd-generator, healer, multi-pom</td>
+    <td>+ locator-extractor, failure-classifier, learner</td>
+    <td><span class="tag tag-have">EXTEND</span></td>
+  </tr>
+  <tr>
+    <td>6. Guardrails</td>
+    <td>Claude Code permissions</td>
+    <td>+ max retries, blast radius, stability gate, bug detection</td>
+    <td><span class="tag tag-build">BUILD</span></td>
+  </tr>
+  <tr>
+    <td>7. Evals</td>
+    <td>None</td>
+    <td>Locator accuracy, first-pass rate, heal rate, stability</td>
+    <td><span class="tag tag-new">NEW</span></td>
+  </tr>
+  <tr>
+    <td>8. A2A</td>
+    <td>None</td>
+    <td>Standard JSON task I/O (future-proof)</td>
+    <td><span class="tag tag-new">LATER</span></td>
+  </tr>
+  <tr>
+    <td>9. Multi-Agent</td>
+    <td>Claude Code Agent/Workflow tools</td>
+    <td>Orchestrator + specialist pattern</td>
+    <td><span class="tag tag-new">LATER</span></td>
+  </tr>
+</table>
+
+<hr>
+
+<p style="color:var(--text-dim);text-align:center;margin-top:2rem;">
+  QA Forge Agent Architecture Guide v1.0 | Generated for release-ui-tests project | October 2026
+</p>
+
+</body>
+</html>

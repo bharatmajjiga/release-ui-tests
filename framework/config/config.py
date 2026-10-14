@@ -83,6 +83,8 @@ class Config(object, metaclass=Singleton):
         else:
             self._catalog_source = os.getenv("CATALOG_SOURCE", "redhat-operators")
 
+        self._install_method = os.getenv("OSP_INSTALL_METHOD", "cli").lower()
+
         # Artifact capture settings
         self._capture_screenshots = os.getenv("CAPTURE_SCREENSHOTS", "false").lower() == "true"
         self._capture_recordings = os.getenv("CAPTURE_RECORDINGS", "false").lower() == "true"
@@ -187,6 +189,10 @@ class Config(object, metaclass=Singleton):
     @property
     def konflux_index_image(self) -> str:
         return self._konflux_index_image
+
+    @property
+    def install_method(self) -> str:
+        return self._install_method
 
     @property
     def osp_channel(self) -> str:

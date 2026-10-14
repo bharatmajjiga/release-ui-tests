@@ -27,6 +27,9 @@ exec/
 # Exception for documentation files (the ! prefix negates the ignore rule)
 !readme.md
 
+# Claude Code skills are source, not scratch notes - they must be shared
+!.claude/skills/**/*.md
+
 # temp files
 tmp/
 
