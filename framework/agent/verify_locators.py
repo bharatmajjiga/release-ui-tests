@@ -38,9 +38,16 @@ PROBE_TIMEOUT_MS = 5000
 
 # The console renders nothing for 10s+ on a cold load. Probing before it is ready
 # reports every locator as "matched nothing", which is the exact false negative
-# this tool exists to prevent.
+# this tool exists to prevent. There is deliberately no default `ready` selector:
+# every weak one tried here (an h1, a bare textarea, an empty-state body) also
+# exists on a half-rendered page or a 404, and silently produced phantom drift.
 READY_TIMEOUT_MS = 90000
-DEFAULT_READY_SELECTOR = "table, [data-test], main h1, [role='grid']"
+
+# Every miss is re-probed once after a settle, and only a locator that misses twice is
+# reported absent. Each probe already waits PROBE_TIMEOUT_MS, so a slow page tends to
+# produce a few phantom misses rather than an obvious cliff - there is no ratio that
+# separates that from real drift, which is why thresholds were abandoned here.
+RECHECK_SETTLE_MS = 8000
 
 
 def detect_version() -> str:
@@ -146,39 +153,79 @@ def _same_page(current: str, target: str) -> bool:
     return current.split("?")[0].rstrip("/") == target.split("?")[0].rstrip("/")
 
 
-async def verify_one(page: Page, spec: Dict[str, Any], base_url: str) -> Dict[str, Any]:
-    """Navigate to one page and probe its candidates. Assumes the session is logged in."""
+async def verify_one(page: Page, spec: Dict[str, Any], base_url: str) -> Tuple[Dict[str, Any], List[str]]:
+    """Navigate to one page and probe its candidates. Assumes the session is logged in.
+
+    Returns (results, recovered) where `recovered` names locators that only appeared
+    on the second read - a signal that this page's `ready` selector is too weak.
+    """
     url = spec["url"]
     target = url if url.startswith("http") else f"{base_url}{url}"
 
     # Several locator classes describe the same page. Re-issuing goto() for a URL
     # already loaded makes this SPA remount and sometimes never re-render, so reuse
     # what is on screen instead.
+    ready = spec.get("ready")
+    if not ready:
+        raise PageNotReady(
+            f"{spec['page_key']}: no 'ready' selector. Name the element the probes "
+            "depend on (the table for a list, `dl` for a detail page, `.monaco-editor` "
+            "for YAML) so a half-rendered page cannot be mistaken for missing locators."
+        )
+
     if not _same_page(page.url, target):
         await page.goto(target)
         # The console holds websockets open, so "networkidle" never fires here.
         await page.wait_for_load_state("domcontentloaded")
 
-    await await_ready(page, spec.get("ready", DEFAULT_READY_SELECTOR))
+    await await_ready(page, ready)
 
     results: Dict[str, Dict[str, Any]] = {}
     for name, raw in spec["candidates"].items():
         stored, probed, expect_many = resolve_candidate(raw)
         count, visible, error = await probe(page, probed)
-        confidence = registry.score(stored, count, expect_many)
-        results[name] = {
-            "selector": stored,
-            "probed_selector": probed if probed != stored else None,
-            "match_count": count,
-            "visible_count": visible,
-            "confidence": confidence,
-            "strategy": registry.classify_strategy(stored),
-            "templated": registry.is_templated(stored),
-            "expect_many": expect_many,
-            "usable": confidence >= registry.MIN_USABLE_CONFIDENCE,
-            "error": error or None,
-        }
-    return results
+        results[name] = _result(stored, probed, count, visible, expect_many, error)
+
+    recovered = await recheck_missing(page, spec, results)
+    return results, recovered
+
+
+def _result(stored: str, probed: str, count: int, visible: int, expect_many: bool, error: str) -> Dict[str, Any]:
+    confidence = registry.score(stored, count, expect_many)
+    return {
+        "selector": stored,
+        "probed_selector": probed if probed != stored else None,
+        "match_count": count,
+        "visible_count": visible,
+        "confidence": confidence,
+        "strategy": registry.classify_strategy(stored),
+        "templated": registry.is_templated(stored),
+        "expect_many": expect_many,
+        "usable": confidence >= registry.MIN_USABLE_CONFIDENCE,
+        "error": error or None,
+    }
+
+
+async def recheck_missing(page: Page, spec: Dict[str, Any], results: Dict[str, Dict[str, Any]]) -> List[str]:
+    """Re-probe everything that missed; return the names that appeared second time.
+
+    A locator is only reported absent if it misses twice with a settle in between.
+    Anything that recovers proves the page was still painting, so the second read is
+    kept and the caller is told the page's `ready` selector is too weak.
+    """
+    missing = [n for n, r in results.items() if r["match_count"] == 0]
+    if not missing:
+        return []
+
+    await page.wait_for_timeout(RECHECK_SETTLE_MS)
+    recovered = []
+    for name in missing:
+        stored, probed, expect_many = resolve_candidate(spec["candidates"][name])
+        count, visible, error = await probe(page, probed)
+        if count > 0:
+            recovered.append(name)
+            results[name] = _result(stored, probed, count, visible, expect_many, error)
+    return sorted(recovered)
 
 
 async def verify_pages(
@@ -211,11 +258,16 @@ async def verify_pages(
             for spec in specs:
                 key = spec["page_key"]
                 try:
-                    results = await verify_one(page, spec, config.base_url)
+                    results, recovered = await verify_one(page, spec, config.base_url)
                     error = None
                 except PageNotReady as exc:
-                    results, error = {}, str(exc)
-                out[key] = {"results": results, "error": error, "url": spec["url"]}
+                    results, recovered, error = {}, [], str(exc)
+                out[key] = {
+                    "results": results,
+                    "error": error,
+                    "url": spec["url"],
+                    "recovered_on_recheck": recovered,
+                }
                 if on_page:
                     on_page(key, results, error)
         finally:
@@ -230,6 +282,13 @@ async def verify(spec: Dict[str, Any], headed: bool) -> Dict[str, Any]:
     entry = out[spec["page_key"]]
     if entry["error"]:
         raise PageNotReady(entry["error"])
+    if entry["recovered_on_recheck"]:
+        print(
+            f"WARNING: {len(entry['recovered_on_recheck'])} locator(s) only matched on a "
+            f"second read ({', '.join(entry['recovered_on_recheck'][:4])}). "
+            f"The 'ready' selector {spec.get('ready')!r} fires before this page is populated.",
+            file=sys.stderr,
+        )
     return entry["results"]
 
 

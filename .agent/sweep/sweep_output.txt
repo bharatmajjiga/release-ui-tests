@@ -2,10 +2,10 @@ Sweeping 43 pages against ocp4.22.16-osp1.24.0 ...
 
   OK   tasks.list.base                    9/9  hidden=1
   OK   tasks.list                         5/5
-  DRIFT taskruns.list                      7/8  ambiguous=1
+  OK   taskruns.list                      8/8
   DRIFT task.details                       6/9  missing=3
   OK   task.yaml                          14/14
-  OK   taskrun.details                    8/8  hidden=2
+  OK   taskrun.details                    8/8
   OK   taskrun.yaml                       14/14
   OK   task.create                        13/13
   OK   taskrun.create                     13/13
@@ -24,7 +24,7 @@ Sweeping 43 pages against ocp4.22.16-osp1.24.0 ...
   DRIFT pipelinerun.details                8/16  missing=8
   OK   pipelinerun.yaml                   9/9
   DRIFT pipelinerun.parameters             1/4  missing=3
-  DRIFT pipelinerun.logs                   17/23  missing=3  ambiguous=3
+  DRIFT pipelinerun.logs                   19/23  missing=3  ambiguous=1
   OK   pipelinerun.taskruns_tab           13/13  hidden=1
   DRIFT pipelinerun.create                 12/13  missing=1
   OK   triggers.list                      7/7
@@ -49,14 +49,10 @@ SWEEP SUMMARY   version=ocp4.22.16-osp1.24.0
 ==============================================================================
   pages swept     43/43
   locators probed 420
-  drifted         44
+  drifted         41
   skipped         33 (need an interaction first)
 
-DRIFTED LOCATORS (44):
-
-  TaskRunsPageLocators
-    TASKRUN_ROW_BY_NAME                  2 matches
-      tr[data-ouia-component-type="PF6/TableRow"]:has-text("{taskrun_name}")
+DRIFTED LOCATORS (41):
 
   TaskDetailsPageLocators
     ANNOTATIONS_BUTTON                   matches nothing
@@ -143,10 +139,6 @@ DRIFTED LOCATORS (44):
       div[class*="step"]
     STEP_HEADER                          26 matches
       div:has-text("STEP-")
-    TASK_LINK                            2 matches
-      nav[aria-label="Global"] a
-    TASK_LINK_ACTIVE                     2 matches
-      nav[aria-label="Global"] a.pf-m-current
 
   CreatePipelineRunPageLocators
     CLOSE_SIDEBAR_BUTTON                 matches nothing

@@ -54,8 +54,10 @@ def is_skipped(name: str, patterns: List[str]) -> bool:
     return any(fnmatch(name, p) for p in patterns)
 
 
-def build_specs(page_map: Dict[str, Any], only: Optional[str]) -> Tuple[List[Dict[str, Any]], Dict[str, List[str]]]:
-    namespace = page_map["namespace"]
+def build_specs(
+    page_map: Dict[str, Any], only: Optional[str], namespace: Optional[str] = None
+) -> Tuple[List[Dict[str, Any]], Dict[str, List[str]]]:
+    namespace = namespace or page_map["namespace"]
     profiles = page_map["ready_profiles"]
     global_skip = page_map.get("always_skip") or []
     specs: List[Dict[str, Any]] = []
@@ -153,11 +155,14 @@ def summarise(
     total = broken = 0
     drifted: List[Tuple[str, str, str, str]] = []
     unreachable: List[str] = []
+    weak_ready: List[Tuple[str, List[str]]] = []
 
     for key, entry in pages.items():
         if entry["error"]:
             unreachable.append(key)
             continue
+        if entry.get("recovered_on_recheck"):
+            weak_ready.append((key, entry["recovered_on_recheck"]))
         results = entry["results"]
         total += len(results)
         missing, ambiguous, _ = classify(results, set(by_key[key]["conditional"]))
@@ -176,37 +181,64 @@ def summarise(
     print(f"  drifted         {broken}")
     print(f"  skipped         {sum(len(v) for v in skipped.values())} (need an interaction first)")
 
-    if unreachable:
-        print(f"\nUNREACHABLE PAGES ({len(unreachable)}) - seed missing, or the route changed:")
-        for key in unreachable:
-            print(f"  {key:<34} {by_key[key]['url']}")
+    _print_weak_ready(weak_ready)
+    _print_unreachable(unreachable, by_key)
+    _print_drifted(drifted)
 
-    if drifted:
-        print(f"\nDRIFTED LOCATORS ({len(drifted)}):")
-        current = ""
-        for cls, name, selector, reason in drifted:
-            if cls != current:
-                print(f"\n  {cls}")
-                current = cls
-            print(f"    {name:<36} {reason}")
-            print(f"      {selector}")
-    else:
+    return 1 if (drifted or unreachable or weak_ready) else 0
+
+
+def _print_weak_ready(weak_ready: List[Tuple[str, List[str]]]) -> None:
+    if not weak_ready:
+        return
+    print(f"\nWEAK ready SELECTOR ({len(weak_ready)} page(s)) - these locators only matched")
+    print("on a second read, so the page was still painting when first probed. Fix the")
+    print("page map: point `ready` at the element the probes actually need.")
+    for key, names in weak_ready:
+        print(f"  {key:<34} {', '.join(names[:5])}{' ...' if len(names) > 5 else ''}")
+
+
+def _print_unreachable(unreachable: List[str], by_key: Dict[str, Dict[str, Any]]) -> None:
+    if not unreachable:
+        return
+    print(f"\nUNREACHABLE PAGES ({len(unreachable)}) - seed missing, or the route changed:")
+    for key in unreachable:
+        print(f"  {key:<34} {by_key[key]['url']}")
+
+
+def _print_drifted(drifted: List[Tuple[str, str, str, str]]) -> None:
+    if not drifted:
         print("\nNo drift found.")
-
-    return 1 if (drifted or unreachable) else 0
+        return
+    print(f"\nDRIFTED LOCATORS ({len(drifted)}):")
+    current = ""
+    for cls, name, selector, reason in drifted:
+        if cls != current:
+            print(f"\n  {cls}")
+            current = cls
+        print(f"    {name:<36} {reason}")
+        print(f"      {selector}")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--map", type=Path, default=MAP_PATH, help="Page map YAML")
     parser.add_argument("--only", help="Only sweep pages whose key contains this substring")
+    parser.add_argument(
+        "--namespace",
+        help=(
+            "Override the seeded namespace. Use a fresh name if this one was recently "
+            "torn down: after a delete/recreate under the same name the console serves "
+            "stale watch entries and lists resources that no longer exist."
+        ),
+    )
     parser.add_argument("--headed", action="store_true", help="Show the browser")
     parser.add_argument("--json", type=Path, help="Write the full result set here")
     parser.add_argument("--save", action="store_true", help="Record passing locators in the registry")
     args = parser.parse_args()
 
     page_map = yaml.safe_load(args.map.read_text())
-    specs, skipped = build_specs(page_map, args.only)
+    specs, skipped = build_specs(page_map, args.only, args.namespace)
     version = detect_version()
 
     print(f"Sweeping {len(specs)} pages against {version} ...\n")

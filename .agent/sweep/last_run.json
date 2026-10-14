@@ -113,7 +113,8 @@
         }
       },
       "error": null,
-      "url": "/tasks/ns/qa-forge-sweep"
+      "url": "/tasks/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "tasks.list": {
       "results": {
@@ -179,7 +180,8 @@
         }
       },
       "error": null,
-      "url": "/tasks/ns/qa-forge-sweep"
+      "url": "/tasks/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "taskruns.list": {
       "results": {
@@ -258,13 +260,13 @@
         "TASKRUN_ROW_BY_NAME": {
           "selector": "tr[data-ouia-component-type=\"PF6/TableRow\"]:has-text(\"{taskrun_name}\")",
           "probed_selector": "tr[data-ouia-component-type=\"PF6/TableRow\"]:has-text(\"probe-task-run\")",
-          "match_count": 2,
-          "visible_count": 2,
-          "confidence": 0.4,
+          "match_count": 1,
+          "visible_count": 1,
+          "confidence": 0.95,
           "strategy": "data-test",
           "templated": true,
           "expect_many": false,
-          "usable": false,
+          "usable": true,
           "error": null
         },
         "TASK_COLUMN_HEADER": {
@@ -281,7 +283,8 @@
         }
       },
       "error": null,
-      "url": "/tasks/ns/qa-forge-sweep/task-runs"
+      "url": "/tasks/ns/qa-forge-sweep2/task-runs",
+      "recovered_on_recheck": []
     },
     "task.details": {
       "results": {
@@ -395,7 +398,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Task/probe-task"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Task/probe-task",
+      "recovered_on_recheck": []
     },
     "task.yaml": {
       "results": {
@@ -569,7 +573,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Task/probe-task/yaml"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Task/probe-task/yaml",
+      "recovered_on_recheck": []
     },
     "taskrun.details": {
       "results": {
@@ -577,7 +582,7 @@
           "selector": "nav[aria-label=\"Breadcrumb\"] a:has-text(\"TaskRuns\")",
           "probed_selector": null,
           "match_count": 1,
-          "visible_count": 0,
+          "visible_count": 1,
           "confidence": 0.9,
           "strategy": "aria",
           "templated": false,
@@ -589,7 +594,7 @@
           "selector": "nav[aria-label=\"Breadcrumb\"] a:has-text(\"TaskRun details\")",
           "probed_selector": null,
           "match_count": 1,
-          "visible_count": 0,
+          "visible_count": 1,
           "confidence": 0.9,
           "strategy": "aria",
           "templated": false,
@@ -671,7 +676,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~TaskRun/probe-task-run"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~TaskRun/probe-task-run",
+      "recovered_on_recheck": []
     },
     "taskrun.yaml": {
       "results": {
@@ -845,7 +851,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~TaskRun/probe-task-run/yaml"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~TaskRun/probe-task-run/yaml",
+      "recovered_on_recheck": []
     },
     "task.create": {
       "results": {
@@ -1007,7 +1014,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Task/~new"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Task/~new",
+      "recovered_on_recheck": []
     },
     "taskrun.create": {
       "results": {
@@ -1169,7 +1177,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~TaskRun/~new"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~TaskRun/~new",
+      "recovered_on_recheck": []
     },
     "pipelines.list.base": {
       "results": {
@@ -1307,7 +1316,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines/ns/qa-forge-sweep"
+      "url": "/pipelines/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "pipelines.list": {
       "results": {
@@ -1409,7 +1419,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines/ns/qa-forge-sweep"
+      "url": "/pipelines/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "pipelineruns.list": {
       "results": {
@@ -1535,7 +1546,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines/ns/qa-forge-sweep/pipeline-runs"
+      "url": "/pipelines/ns/qa-forge-sweep2/pipeline-runs",
+      "recovered_on_recheck": []
     },
     "repositories.list": {
       "results": {
@@ -1565,7 +1577,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines/ns/qa-forge-sweep/repositories"
+      "url": "/pipelines/ns/qa-forge-sweep2/repositories",
+      "recovered_on_recheck": []
     },
     "pipeline.details": {
       "results": {
@@ -1823,7 +1836,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Pipeline/probe-pipeline"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Pipeline/probe-pipeline",
+      "recovered_on_recheck": []
     },
     "pipeline.yaml": {
       "results": {
@@ -2033,7 +2047,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Pipeline/probe-pipeline/yaml"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Pipeline/probe-pipeline/yaml",
+      "recovered_on_recheck": []
     },
     "pipeline.parameters": {
       "results": {
@@ -2207,7 +2222,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Pipeline/probe-pipeline/parameters"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Pipeline/probe-pipeline/parameters",
+      "recovered_on_recheck": []
     },
     "pipeline.runs_tab": {
       "results": {
@@ -2453,7 +2469,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Pipeline/probe-pipeline/Runs"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Pipeline/probe-pipeline/Runs",
+      "recovered_on_recheck": []
     },
     "pipeline.builder": {
       "results": {
@@ -2531,7 +2548,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Pipeline/~new/builder"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Pipeline/~new/builder",
+      "recovered_on_recheck": []
     },
     "pipeline.builder.view": {
       "results": {
@@ -2585,7 +2603,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Pipeline/~new/builder"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Pipeline/~new/builder",
+      "recovered_on_recheck": []
     },
     "pipelines.overview": {
       "results": {
@@ -2603,7 +2622,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines-overview/ns/qa-forge-sweep"
+      "url": "/pipelines-overview/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "pipelinerun.base": {
       "results": {
@@ -2729,7 +2749,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~PipelineRun/probe-pipeline-run"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~PipelineRun/probe-pipeline-run",
+      "recovered_on_recheck": []
     },
     "pipelinerun.details": {
       "results": {
@@ -2927,7 +2948,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~PipelineRun/probe-pipeline-run"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~PipelineRun/probe-pipeline-run",
+      "recovered_on_recheck": []
     },
     "pipelinerun.yaml": {
       "results": {
@@ -3041,7 +3063,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~PipelineRun/probe-pipeline-run/yaml"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~PipelineRun/probe-pipeline-run/yaml",
+      "recovered_on_recheck": []
     },
     "pipelinerun.parameters": {
       "results": {
@@ -3095,21 +3118,22 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~PipelineRun/probe-pipeline-run/parameters"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~PipelineRun/probe-pipeline-run/parameters",
+      "recovered_on_recheck": []
     },
     "pipelinerun.logs": {
       "results": {
         "DOWNLOAD_ALL_BUTTON": {
           "selector": "button:has-text(\"Download all task logs\")",
           "probed_selector": null,
-          "match_count": 1,
-          "visible_count": 1,
-          "confidence": 0.8,
+          "match_count": 0,
+          "visible_count": 0,
+          "confidence": 0.0,
           "strategy": "text",
           "templated": false,
           "expect_many": false,
-          "usable": true,
-          "error": null
+          "usable": false,
+          "error": "Locator.wait_for: Timeout 5000ms exceeded."
         },
         "DOWNLOAD_BUTTON": {
           "selector": "button:has-text(\"Download\"):not(:has-text(\"all\"))",
@@ -3306,25 +3330,25 @@
         "TASK_LINK": {
           "selector": "nav[aria-label=\"Global\"] a",
           "probed_selector": null,
-          "match_count": 2,
-          "visible_count": 2,
-          "confidence": 0.4,
+          "match_count": 1,
+          "visible_count": 1,
+          "confidence": 0.9,
           "strategy": "aria",
           "templated": false,
           "expect_many": false,
-          "usable": false,
+          "usable": true,
           "error": null
         },
         "TASK_LINK_ACTIVE": {
           "selector": "nav[aria-label=\"Global\"] a.pf-m-current",
           "probed_selector": null,
-          "match_count": 2,
-          "visible_count": 2,
-          "confidence": 0.4,
+          "match_count": 1,
+          "visible_count": 1,
+          "confidence": 0.9,
           "strategy": "aria",
           "templated": false,
           "expect_many": false,
-          "usable": false,
+          "usable": true,
           "error": null
         },
         "TASK_NAVIGATION": {
@@ -3366,8 +3390,8 @@
         "TASK_SUCCESS_ICON": {
           "selector": "svg.pf-v6-svg path[d^=\"M504 256c0 136.967\"]",
           "probed_selector": null,
-          "match_count": 3,
-          "visible_count": 3,
+          "match_count": 2,
+          "visible_count": 2,
           "confidence": 0.75,
           "strategy": "css",
           "templated": false,
@@ -3377,7 +3401,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~PipelineRun/probe-pipeline-run/logs"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~PipelineRun/probe-pipeline-run/logs",
+      "recovered_on_recheck": []
     },
     "pipelinerun.taskruns_tab": {
       "results": {
@@ -3539,7 +3564,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~PipelineRun/probe-pipeline-run/task-runs"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~PipelineRun/probe-pipeline-run/task-runs",
+      "recovered_on_recheck": []
     },
     "pipelinerun.create": {
       "results": {
@@ -3701,7 +3727,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~PipelineRun/~new"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~PipelineRun/~new",
+      "recovered_on_recheck": []
     },
     "triggers.list": {
       "results": {
@@ -3791,7 +3818,8 @@
         }
       },
       "error": null,
-      "url": "/triggers/ns/qa-forge-sweep"
+      "url": "/triggers/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "eventlistener.details": {
       "results": {
@@ -3929,7 +3957,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~EventListener/probe-event-listener"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~EventListener/probe-event-listener",
+      "recovered_on_recheck": []
     },
     "eventlistener.yaml": {
       "results": {
@@ -4103,7 +4132,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~EventListener/probe-event-listener/yaml"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~EventListener/probe-event-listener/yaml",
+      "recovered_on_recheck": []
     },
     "triggertemplate.details": {
       "results": {
@@ -4217,7 +4247,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~TriggerTemplate/probe-trigger-template"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~TriggerTemplate/probe-trigger-template",
+      "recovered_on_recheck": []
     },
     "triggertemplate.yaml": {
       "results": {
@@ -4391,7 +4422,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~TriggerTemplate/probe-trigger-template/yaml"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~TriggerTemplate/probe-trigger-template/yaml",
+      "recovered_on_recheck": []
     },
     "triggerbinding.details": {
       "results": {
@@ -4505,7 +4537,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~TriggerBinding/probe-trigger-binding"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~TriggerBinding/probe-trigger-binding",
+      "recovered_on_recheck": []
     },
     "triggerbinding.yaml": {
       "results": {
@@ -4679,7 +4712,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~TriggerBinding/probe-trigger-binding/yaml"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~TriggerBinding/probe-trigger-binding/yaml",
+      "recovered_on_recheck": []
     },
     "triggerbinding.create": {
       "results": {
@@ -4793,7 +4827,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~TriggerBinding/~new"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~TriggerBinding/~new",
+      "recovered_on_recheck": []
     },
     "triggertemplate.create": {
       "results": {
@@ -4907,7 +4942,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~TriggerTemplate/~new"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~TriggerTemplate/~new",
+      "recovered_on_recheck": []
     },
     "eventlistener.create": {
       "results": {
@@ -5021,7 +5057,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/triggers.tekton.dev~v1beta1~EventListener/~new"
+      "url": "/k8s/ns/qa-forge-sweep2/triggers.tekton.dev~v1beta1~EventListener/~new",
+      "recovered_on_recheck": []
     },
     "clustertriggerbinding.create": {
       "results": {
@@ -5135,7 +5172,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/cluster/triggers.tekton.dev~v1beta1~ClusterTriggerBinding/~new"
+      "url": "/k8s/cluster/triggers.tekton.dev~v1beta1~ClusterTriggerBinding/~new",
+      "recovered_on_recheck": []
     },
     "overview": {
       "results": {
@@ -5165,7 +5203,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines-overview/ns/qa-forge-sweep"
+      "url": "/pipelines-overview/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "nav.left": {
       "results": {
@@ -5243,7 +5282,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines/ns/qa-forge-sweep"
+      "url": "/pipelines/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "nav.project_selector": {
       "results": {
@@ -5261,7 +5301,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines/ns/qa-forge-sweep"
+      "url": "/pipelines/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "nav.favorites": {
       "results": {
@@ -5279,7 +5320,8 @@
         }
       },
       "error": null,
-      "url": "/pipelines/ns/qa-forge-sweep"
+      "url": "/pipelines/ns/qa-forge-sweep2",
+      "recovered_on_recheck": []
     },
     "actions_menu": {
       "results": {
@@ -5297,7 +5339,8 @@
         }
       },
       "error": null,
-      "url": "/k8s/ns/qa-forge-sweep/tekton.dev~v1~Pipeline/probe-pipeline"
+      "url": "/k8s/ns/qa-forge-sweep2/tekton.dev~v1~Pipeline/probe-pipeline",
+      "recovered_on_recheck": []
     }
   },
   "skipped": {
