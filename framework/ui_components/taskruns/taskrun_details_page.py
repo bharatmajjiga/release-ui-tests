@@ -91,14 +91,6 @@ class TaskRunDetailsPage(BasePage):
             self.logger.error(f"Failed to get status: {e}")
             return ""
 
-    async def click_task_link(self) -> bool:
-        """
-        Clicks the Task link to navigate to the referenced Task details.
-
-        :return: bool: True if click succeeds
-        """
-        return await self.click_element(self.locators.TASK_LINK)
-
     async def is_details_section_visible(self) -> bool:
         """
         Checks if the TaskRun details section is visible.

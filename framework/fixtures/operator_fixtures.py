@@ -1,4 +1,4 @@
-"""Session-scoped fixture to ensure OpenShift Pipelines operator is installed via CLI."""
+"""Session-scoped fixture to ensure OpenShift Pipelines operator is installed."""
 
 import asyncio
 import logging
@@ -6,6 +6,7 @@ import os
 import time
 
 import pytest
+from playwright.async_api import Browser, Page
 
 from framework.cli.openshift_cli import OpenShiftCLI
 from framework.config.config import Config
@@ -451,7 +452,36 @@ async def _validate_post_install(cli: OpenShiftCLI, start: float, deadline: floa
     logger.info("[OSP Setup] [5/5 Pod Readiness] openshift-pipelines/pipelines-console-plugin is ready.")
 
 
-async def _ensure_osp(cli: OpenShiftCLI, config: Config, timeout_seconds: int = OSP_SETUP_TIMEOUT_SECONDS) -> None:
+async def _install_operator_via_ui(
+    ui_page: Page,
+    cli: OpenShiftCLI,
+    config: Config,
+    start: float,
+    deadline: float,
+) -> None:
+    from framework.ui_components.operators.operator_install_page import OperatorInstallPage
+
+    logger.info("[OSP Setup] [2/5 Install] Installing operator via UI...")
+    install_page = OperatorInstallPage(ui_page, config)
+    success = await install_page.install_operator(
+        catalog_source=config.catalog_source,
+        channel=config.channel,
+    )
+    if not success:
+        raise RuntimeError("UI-based operator install failed")
+
+    logger.info("[OSP Setup] [2/5 Install] UI install triggered, waiting for CSV via CLI...")
+    if not await _wait_for_csv(cli, start, deadline):
+        raise RuntimeError(f"Operator CSV did not reach Succeeded within timeout ({_elapsed_str(start, deadline)})")
+    logger.info("[OSP Setup] [2/5 Install] CSV reached Succeeded.")
+
+
+async def _ensure_osp(
+    cli: OpenShiftCLI,
+    config: Config,
+    timeout_seconds: int = OSP_SETUP_TIMEOUT_SECONDS,
+    ui_page: Page | None = None,
+) -> None:
     start = time.monotonic()
     deadline = start + timeout_seconds
 
@@ -478,7 +508,14 @@ async def _ensure_osp(cli: OpenShiftCLI, config: Config, timeout_seconds: int = 
     logger.info("[OSP Setup] [1/5 Check] Checking if operator is already installed...")
     if await _is_osp_installed(cli):
         logger.info("[OSP Setup] [1/5 Check] Operator already installed with CSV Succeeded.")
+    elif ui_page and not operator_version:
+        await _install_operator_via_ui(ui_page, cli, config, start, deadline)
     else:
+        if ui_page and operator_version:
+            logger.warning(
+                "[OSP Setup] Version pinning (OPERATOR_VERSION=%s) requires CLI install. Falling back to CLI method.",
+                operator_version,
+            )
         await _install_operator(cli, channel, catalog_source, operator_version, nightly, start, deadline)
 
     await _validate_post_install(cli, start, deadline)
@@ -491,6 +528,7 @@ async def _ensure_osp(cli: OpenShiftCLI, config: Config, timeout_seconds: int = 
 def ensure_osp_installed(
     openshift_cli: OpenShiftCLI,
     config: Config,
+    browser: Browser,
     playwright_event_loop: asyncio.AbstractEventLoop,
 ) -> None:
     from framework.cli.openshift_cli import derive_api_url_from_console_url
@@ -503,16 +541,13 @@ def ensure_osp_installed(
     async def _setup() -> None:
         logger.info("[OSP Setup] [0/5 Login] Checking CLI authentication...")
 
-        # 1. Check if already logged in via existing KUBECONFIG (CI/Prow)
         if await openshift_cli.is_logged_in():
             logger.info("[OSP Setup] [0/5 Login] Already authenticated via existing KUBECONFIG.")
         else:
-            # 2. Try API_URL env var if set (explicit override)
             api_url = os.getenv("API_URL")
             if api_url:
                 logger.info("[OSP Setup] [0/5 Login] Using API_URL env var: %s", api_url)
             else:
-                # 3. Derive from CONSOLE_URL
                 api_url = derive_api_url_from_console_url(config.base_url)
                 assert api_url, f"Could not derive API URL from {config.base_url}"
                 logger.info("[OSP Setup] [0/5 Login] Derived API URL: %s", api_url)
@@ -522,6 +557,29 @@ def ensure_osp_installed(
             ), f"CLI login failed against {api_url}"
             logger.info("[OSP Setup] [0/5 Login] Logged in successfully.")
 
-        await _ensure_osp(openshift_cli, config)
+        ui_page: Page | None = None
+        context = None
+        if config.install_method == "ui":
+            logger.info("[OSP Setup] Install method=ui, creating browser session for OperatorHub...")
+            context = await browser.new_context(
+                ignore_https_errors=True,
+                viewport={"width": 1920, "height": 1080},
+                locale="en-US",
+            )
+            ui_page = await context.new_page()
+            ui_page.set_default_timeout(config.timeout_ms)
+            from framework.ui_components.commons.login_page import LoginPage
+
+            login = LoginPage(ui_page, config)
+            await login.goto()
+            await login.perform_login(config.auth_type)
+            await ui_page.wait_for_load_state("networkidle")
+            logger.info("[OSP Setup] Browser session ready.")
+
+        try:
+            await _ensure_osp(openshift_cli, config, ui_page=ui_page)
+        finally:
+            if context:
+                await context.close()
 
     run_async(playwright_event_loop, _setup())

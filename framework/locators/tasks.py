@@ -13,14 +13,15 @@ class TasksBasePageLocators:
     CREATE_TASK_RUN_MENU_ITEM = 'role=menuitem[name="TaskRun"]'
 
     # Tab navigation
-    TASKS_TAB = 'a[href^="/tasks/all-namespaces"], a[href^="/tasks/ns/"]'
+    TASKS_TAB = 'a[role="tab"]:has-text("Tasks")'
     TASK_RUNS_TAB = 'a[href^="/tasks/all-namespaces/"][href$="/task-runs"], a[href^="/tasks/ns/"][href$="/task-runs"]'
 
     # Search/Filter toolbar
-    SEARCH_INPUT = 'input[placeholder="Search by name..."]'
-    FILTER_BUTTON = 'button:has-text("Filter")'
-    COLUMN_MANAGEMENT_BUTTON = 'button[aria-label="Column management"]'
-    CLEAR_ALL_FILTERS_BUTTON = 'button:has-text("Clear all filters")'
+    SEARCH_INPUT = 'input[aria-label="Search input"]'
+    # PF6 DataView has no "Filter" button; filtering starts from the attribute dropdown.
+    FILTER_BUTTON = "button.pf-m-full-width.pf-v6-c-menu-toggle"
+    # Rendered but hidden until at least one filter is applied.
+    CLEAR_ALL_FILTERS_BUTTON = '[data-ouia-component-id="DataViewToolbar-clear-all-filters"]'
 
     # Row actions
     KEBAB_MENU_BUTTON = 'button[aria-label="Actions"]'
@@ -185,7 +186,6 @@ class TaskRunDetailsPageLocators:
     TASKRUN_DETAILS_HEADING = 'h2:has-text("TaskRun details")'
     NAMESPACE_LINK = 'a[href^="/k8s/cluster/namespaces/"]'
     STATUS_LABEL = 'dt:has-text("Status")'
-    TASK_LINK = 'dt:has-text("Task") + dd a'
 
 
 class TaskRunYamlPageLocators:
@@ -212,7 +212,8 @@ class TaskRunYamlPageLocators:
     SHORTCUTS_BUTTON = 'button:has-text("Shortcuts")'
 
     # Action buttons
-    SAVE_BUTTON = 'button:has-text("Save")'
+    # Absent on a completed TaskRun, which the console renders read-only.
+    SAVE_BUTTON = '[data-test="save-changes"]'
     RELOAD_BUTTON = 'button:has-text("Reload")'
     CANCEL_BUTTON = 'button:has-text("Cancel")'
     DOWNLOAD_BUTTON = 'button:has-text("Download")'
