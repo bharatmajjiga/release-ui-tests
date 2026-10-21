@@ -1,5 +1,51 @@
 {
   "entries": {
+    "installed_operators": {
+      "url": "/k8s/all-namespaces/operators.coreos.com~v1alpha1~ClusterServiceVersion",
+      "versions": {
+        "ocp4.22.16-osp1.24.1": {
+          "locators": {
+            "OSP_LINK": {
+              "confidence": 0.8,
+              "error": null,
+              "expect_many": false,
+              "match_count": 1,
+              "probed_selector": null,
+              "selector": "a:has-text(\"Red Hat OpenShift Pipelines\")",
+              "strategy": "text",
+              "templated": false,
+              "usable": true,
+              "visible_count": 1
+            },
+            "OSP_ROW": {
+              "confidence": 0.8,
+              "error": null,
+              "expect_many": false,
+              "match_count": 1,
+              "probed_selector": null,
+              "selector": "tr:has-text(\"Red Hat OpenShift Pipelines\")",
+              "strategy": "text",
+              "templated": false,
+              "usable": true,
+              "visible_count": 1
+            },
+            "STATUS_SUCCEEDED": {
+              "confidence": 0.8,
+              "error": null,
+              "expect_many": true,
+              "match_count": 5,
+              "probed_selector": null,
+              "selector": "td:has-text(\"Succeeded\")",
+              "strategy": "text",
+              "templated": false,
+              "usable": true,
+              "visible_count": 5
+            }
+          },
+          "verified_at": "2026-10-21T14:35:19+00:00"
+        }
+      }
+    },
     "pipelines.list.base": {
       "url": "/pipelines/ns/openshift",
       "versions": {
@@ -139,6 +185,40 @@
             }
           },
           "verified_at": "2026-10-14T14:58:02+00:00"
+        }
+      }
+    },
+    "software_catalog": {
+      "url": "/catalog/all-namespaces?catalogType=operator",
+      "versions": {
+        "ocp4.22.16-osp1.24.1": {
+          "locators": {
+            "CATALOG_TILE": {
+              "confidence": 0.95,
+              "error": null,
+              "expect_many": true,
+              "match_count": 40,
+              "probed_selector": null,
+              "selector": "[data-test^=\"operator-\"]",
+              "strategy": "data-test",
+              "templated": false,
+              "usable": true,
+              "visible_count": 40
+            },
+            "KEYWORD_FILTER": {
+              "confidence": 0.75,
+              "error": null,
+              "expect_many": false,
+              "match_count": 1,
+              "probed_selector": null,
+              "selector": "input[placeholder=\"Filter by keyword...\"]",
+              "strategy": "css",
+              "templated": false,
+              "usable": true,
+              "visible_count": 1
+            }
+          },
+          "verified_at": "2026-10-21T14:33:56+00:00"
         }
       }
     },

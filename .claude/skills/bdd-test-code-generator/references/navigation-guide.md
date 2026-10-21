@@ -14,7 +14,7 @@ For CRUD operations on Tekton resources (Tasks, Pipelines, PipelineRuns, Trigger
 
 ```gherkin
 Background:
-  Given the user is logged into openshift console with auth kube:admin
+  Given the user is logged into openshift console
   When the user expands Pipelines in left navigation bar    # Step 1: Smart expand
   When the user navigates to the Tasks page                 # Step 2: Navigate to page
 ```
@@ -204,7 +204,7 @@ def create_task_from_yaml(page, yaml_file, playwright_event_loop, config):
 Feature: Task CRUD Operations
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
     When the user expands Pipelines in left navigation bar    # ← Step 1: Smart expand
     When the user navigates to the Tasks page                 # ← Step 2: Click Tasks link
 
@@ -244,7 +244,7 @@ If your feature does NOT involve CRUD operations (create/edit/delete), only the 
 Feature: View Task Details
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
 
   Scenario: View task details page
     When the user navigates to task "example-task" details page

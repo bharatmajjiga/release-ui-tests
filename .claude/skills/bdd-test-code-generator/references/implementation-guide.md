@@ -353,7 +353,7 @@ def verify_task_in_list(
 Feature: Task Creation and Verification
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
     When the user expands Pipelines in left navigation bar
     When the user navigates to the Tasks page
 
@@ -629,7 +629,7 @@ def create_task_from_yaml(
 Feature: {Feature Title}
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
     When the user expands Pipelines in left navigation bar
     And the user navigates to the {Resource} page
     And user switches to current project
@@ -654,7 +654,7 @@ Feature: {Feature Title}
 Feature: Task Creation and Verification
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
     When the user expands Pipelines in left navigation bar    # Smart expand
     And the user navigates to the Tasks page                  # Click Tasks link
     And user switches to current project                      # Switch project
@@ -681,7 +681,7 @@ Feature: Task Creation and Verification
 **Verification Checklist**:
 
 1. **Feature File Background Section**:
-   - ✅ Has "Given the user is logged into openshift console with auth kube:admin"
+   - ✅ Has "Given the user is logged into openshift console"
    - ✅ Has "When the user expands Pipelines in left navigation bar"
    - ✅ Has "And the user navigates to the {Resource} page"
    - ✅ Has "And user switches to current project" ← **CRITICAL - Often forgotten**

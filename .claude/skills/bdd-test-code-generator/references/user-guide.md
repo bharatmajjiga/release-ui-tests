@@ -20,7 +20,7 @@ Examples, best practices, and tips for using the BDD Test Code Generator skill e
 Feature: Task Creation and Verification
 
   Background:
-    Given the user is logged into openshift console with auth kube:admin
+    Given the user is logged into openshift console
     When the user expands Pipelines in left navigation bar    # Step 1: Smart expand
     When the user navigates to the Tasks page                 # Step 2: Click Tasks link
 

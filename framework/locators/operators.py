@@ -25,9 +25,11 @@ class SoftwareCatalogLocators:
     # tell the entries apart: with a custom CatalogSource installed, two cards share
     # the display name "Red Hat OpenShift Pipelines" - one from Red Hat, one from
     # Custom Operators - so data-test alone is ambiguous.
-    OSP_PACKAGE = "openshift-pipelines-operator-rh"
-    MARKETPLACE_NAMESPACE = "openshift-marketplace"
-    PROVIDER_BADGE = ".catalog-tile-pf-badge"
+    # Underscore-prefixed: these are string fragments used to build selectors, not
+    # selectors themselves. The drift sweep skips leading-underscore names, which
+    # stops it probing "openshift-marketplace" as though it were CSS.
+    _OSP_PACKAGE = "openshift-pipelines-operator-rh"
+    _MARKETPLACE_NAMESPACE = "openshift-marketplace"
 
     @staticmethod
     def operator_card(display_name: str) -> str:
@@ -35,13 +37,13 @@ class SoftwareCatalogLocators:
         return f'[data-test="operator-{display_name}"]'
 
     @staticmethod
-    def operator_card_by_source(catalog_source: str, package: str = OSP_PACKAGE) -> str:
+    def operator_card_by_source(catalog_source: str, package: str = _OSP_PACKAGE) -> str:
         """The single card belonging to one catalog source.
 
         `catalog_source` comes straight from config: redhat-operators for prod,
         custom-operators for stage and pre-stage.
         """
-        return f'[id="{package}-{catalog_source}-{SoftwareCatalogLocators.MARKETPLACE_NAMESPACE}"]'
+        return f'[id="{package}-{catalog_source}-{SoftwareCatalogLocators._MARKETPLACE_NAMESPACE}"]'
 
     @staticmethod
     def operator_card_action(display_name: str) -> str:
@@ -49,7 +51,7 @@ class SoftwareCatalogLocators:
         return f'[data-test="operator-{display_name}"] button.pf-v6-c-card__clickable-action'
 
     @staticmethod
-    def operator_card_action_by_source(catalog_source: str, package: str = OSP_PACKAGE) -> str:
+    def operator_card_action_by_source(catalog_source: str, package: str = _OSP_PACKAGE) -> str:
         card = SoftwareCatalogLocators.operator_card_by_source(catalog_source, package)
         return f"{card} button.pf-v6-c-card__clickable-action"
 
