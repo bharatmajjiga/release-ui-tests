@@ -16,8 +16,8 @@ class PipelinesBasePageLocators:
 
     # Tab navigation
     PIPELINES_TAB = 'a[role="tab"]:has-text("Pipelines")'
-    PIPELINE_RUNS_TAB = 'a[href^="/pipelines/ns/"][href$="/pipeline-runs"]'
-    REPOSITORIES_TAB = 'a[href^="/pipelines/ns/"][href$="/repositories"]'
+    PIPELINE_RUNS_TAB = 'a[role="tab"]:has-text("PipelineRuns")'
+    REPOSITORIES_TAB = 'a[role="tab"]:has-text("Repositories")'
 
     # Search/Filter toolbar
     SEARCH_INPUT = 'input[aria-label="Search input"]'
