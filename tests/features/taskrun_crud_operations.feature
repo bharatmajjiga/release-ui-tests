@@ -6,7 +6,7 @@ Feature: TaskRun CRUD Operations
     And the user navigates to the Tasks page
     And user switches to current project
 
-  @smoke @sanity
+  @sanity
   Scenario Outline: Create TaskRun and verify redirect to details page
     When the user creates a task via cli from YAML file "<task_yaml_file>"
     And the user creates a taskrun from YAML file "<yaml_file>"
@@ -17,7 +17,7 @@ Feature: TaskRun CRUD Operations
       | task_yaml_file   | yaml_file            | taskrun_name      |
       | simple_task.yaml | simple_taskrun.yaml  | simple-taskrun-   |
 
-  @smoke @sanity
+  @sanity
   Scenario Outline: Verify TaskRun appears in TaskRuns list
     When the user navigates to TaskRuns tab
     Then the taskrun "<taskrun_name>" should appear in the taskruns list
@@ -26,7 +26,7 @@ Feature: TaskRun CRUD Operations
       | taskrun_name      |
       | simple-taskrun-   |
 
-  @smoke @sanity
+  @sanity
   Scenario Outline: Verify TaskRun is executed successfully
     When the user navigates to TaskRuns tab
     Then the taskrun "<taskrun_name>" is executed with status "<taskrun_status>"

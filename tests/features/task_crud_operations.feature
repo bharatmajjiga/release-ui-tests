@@ -6,7 +6,7 @@ Feature: Task CRUD Operations
     And the user navigates to the Tasks page
     And user switches to current project
 
-  @smoke @sanity
+  @sanity
   Scenario Outline: Create tasks from YAML and verify redirection to task details page
     When the user creates a task from YAML file "<yaml_file>"
     Then validate user is redirected to task details page for task "<task_name>"
@@ -16,7 +16,7 @@ Feature: Task CRUD Operations
       | yaml_file        | task_name   |
       | simple_task.yaml | simple-task |
 
-  @smoke @sanity
+  @sanity
   Scenario Outline:  Verify created task appears in list
     Then the task "<task_name>" should appear in the tasks list
 
@@ -34,7 +34,7 @@ Feature: Task CRUD Operations
       |  task_name   | updated_yaml_file          |
       |  simple-task | simple_task_updated.yaml   |
 
-  @smoke @sanity
+  @sanity
   Scenario Outline:  Verify edited task appears in list
     Then the task "<task_name>" should appear in the tasks list
 
