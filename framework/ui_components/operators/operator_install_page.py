@@ -84,7 +84,7 @@ class OperatorInstallPage(BasePage):
         if not await self.exists(card_action, timeout=30000):
             raise AssertionError(
                 f"No catalog card for source '{catalog_source}'. The CatalogSource may not be ready yet, "
-                f"or its package name differs from '{SoftwareCatalogLocators.OSP_PACKAGE}'."
+                f"or its package name differs from '{SoftwareCatalogLocators._OSP_PACKAGE}'."
             )
         await self.page.locator(card_action).first.click()
         await self.page.locator(OperatorDetailPanelLocators.CTA).first.wait_for(state="visible", timeout=60000)

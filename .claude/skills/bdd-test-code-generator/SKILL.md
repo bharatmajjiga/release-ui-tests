@@ -88,7 +88,7 @@ NotebookLM timeout (`nlm login` retry), Missing POM (`/multi-page-pom`), Invalid
 
 ```gherkin
 Background:
-  Given the user is logged into openshift console with auth kube:admin
+  Given the user is logged into openshift console
   When the user expands Pipelines in left navigation bar    # Step 1: Smart expand
   And the user navigates to the Tasks page                  # Step 2: Navigate to page
   And user switches to current project                      # Step 3: Project selector

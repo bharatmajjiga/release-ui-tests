@@ -32,7 +32,7 @@ This document captures all issues encountered and fixes applied when generating 
 **Generated Code (Wrong):**
 ```gherkin
 Background:
-  Given the user is logged into openshift console with auth kube:admin
+  Given the user is logged into openshift console
   When the user expands Pipelines in left navigation bar
   And the user navigates to the PipelineRuns page    # ❌ Wrong
   And user switches to current project
@@ -41,7 +41,7 @@ Background:
 **Fixed Code:**
 ```gherkin
 Background:
-  Given the user is logged into openshift console with auth kube:admin
+  Given the user is logged into openshift console
   When the user expands Pipelines in left navigation bar
   And the user navigates to the Pipelines page      # ✅ Correct
   And user switches to current project

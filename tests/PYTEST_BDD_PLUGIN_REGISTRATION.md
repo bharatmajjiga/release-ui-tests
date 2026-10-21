@@ -28,33 +28,32 @@ IndexError: list index out of range
 pytest_plugins = [
     "tests.steps.test_auth_steps",  # ✅ Only step definitions
     "tests.steps.test_navigation_steps",  # ✅ Only step definitions
-    "tests.steps.test_trigger_navigation_steps",  # ✅ Only step definitions
+    "tests.steps.test_shared_steps",  # ✅ Only step definitions
 ]
 ```
 
 **Files with `scenarios()` calls** → Do NOT register (auto-discovered)
 ```python
-# tests/steps/test_pipeline_navigation_steps.py
-from pytest_bdd import scenarios, when, then
+# tests/steps/test_pipelines_operator_navigation_steps.py
+from pytest_bdd import scenarios
 
-scenarios("../features/pipelines_navigation_left_navigation.feature")  # ❌ Do NOT register in pytest_plugins
-
-
-@when("...")  # Step definitions here
-def step():
-    pass
+scenarios(FEATURE_FILE)  # ❌ Do NOT register in pytest_plugins
 ```
 
 ## File Organization Pattern
 
 ```
 tests/steps/
-├── test_auth_steps.py                   # ✅ Register as plugin (no scenarios)
-├── test_navigation_steps.py             # ✅ Register as plugin (no scenarios)
-├── test_trigger_navigation_steps.py     # ✅ Register as plugin (no scenarios)
-├── test_pipeline_navigation_steps.py    # ❌ NOT in plugins (has scenarios() call)
-└── test_task_navigation_steps.py        # ❌ NOT in plugins (has scenarios() call)
+├── test_auth_steps.py                            # ✅ Register as plugin (no scenarios)
+├── test_navigation_steps.py                      # ✅ Register as plugin (no scenarios)
+├── test_shared_steps.py                          # ✅ Register as plugin (no scenarios)
+├── test_task_crud_steps.py                       # ❌ NOT in plugins (has scenarios() call)
+└── test_pipelines_operator_navigation_steps.py   # ❌ NOT in plugins (has scenarios() call)
 ```
+
+> A module that is neither registered in `pytest_plugins` nor calls `scenarios()` is
+> dead code: its step definitions are never loaded. Three navigation modules sat in
+> that state before being removed - they looked active but pytest-bdd never saw them.
 
 ## Current Configuration
 
@@ -65,9 +64,10 @@ from framework.fixtures.ui_fixtures import *  # noqa: F403, F401
 pytest_plugins = [
     "tests.steps.test_auth_steps",  # Step definitions only
     "tests.steps.test_navigation_steps",  # Step definitions only
-    "tests.steps.test_trigger_navigation_steps",  # Step definitions only
-    # Note: test_pipeline_navigation_steps.py and test_task_navigation_steps.py
-    # are NOT registered here because they call scenarios() and are auto-discovered
+    "tests.steps.test_shared_steps",  # Step definitions only
+    # Note: modules that call scenarios() - the *_crud_steps and
+    # test_pipelines_operator_navigation_steps - are NOT registered here;
+    # pytest auto-discovers them as test modules.
 ]
 ```
 

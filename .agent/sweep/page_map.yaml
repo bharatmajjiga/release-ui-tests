@@ -31,6 +31,7 @@ ready_profiles:
   # The real container is pf-v6-c-log-viewer; a bare `.log-viewer` never matches it.
   logs: "div.pf-v6-c-log-viewer, li.odc-pipeline-run-logs__navitem"
   overview: "h1, .co-dashboard-card, .pf-v6-c-card"
+  catalog: 'input[placeholder="Filter by keyword..."]'
 
 pages:
   # ---------- Tasks ----------
@@ -305,8 +306,29 @@ pages:
     url: /k8s/ns/{ns}/tekton.dev~v1~Pipeline/probe-pipeline
     ready: detail
 
+  # ---------- Operator install (Software Catalog) ----------
+  - key: software_catalog
+    locators: framework.locators.operators:SoftwareCatalogLocators
+    # OperatorHub was replaced by the Software Catalog in 4.22; /operatorhub now
+    # redirects here. The old route 404s, which is how the UI install silently broke.
+    url: /catalog/all-namespaces?catalogType=operator
+    ready: catalog
+    many: [CATALOG_TILE]
+
+  - key: installed_operators
+    locators: framework.locators.operators:InstalledOperatorsLocators
+    url: /k8s/all-namespaces/operators.coreos.com~v1alpha1~ClusterServiceVersion
+    ready: list
+    # Only present once OpenShift Pipelines is actually installed.
+    conditional: [OSP_ROW, OSP_LINK, STATUS_SUCCEEDED]
+    # One Succeeded cell per installed operator, so repetition is expected.
+    many: [STATUS_SUCCEEDED]
+
 # Not swept, and why:
-#   LoginPageLocators       - only exists before the sweep authenticates
-#   ConfirmationModalLocators - only exists after a destructive action is triggered
-#   operators.py classes    - the OperatorHub install flow is interaction-driven
-#   YamlViewLocators        - lives behind the builder's YAML/form view toggle
+#   LoginPageLocators           - only exists before the sweep authenticates
+#   ConfirmationModalLocators   - only exists after a destructive action is triggered
+#   YamlViewLocators            - lives behind the builder's YAML/form view toggle
+#   SoftwareCatalogNavLocators  - Ecosystem's children are hidden until it is expanded
+#   OperatorDetailPanelLocators - the panel opens only after clicking a catalog card
+#   InstallOperatorLocators     - the subscribe form is two clicks past the catalog
+#   InstallResultLocators       - exists only on the page shown after an install
