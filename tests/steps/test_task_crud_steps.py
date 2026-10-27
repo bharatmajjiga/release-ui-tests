@@ -510,6 +510,84 @@ def close_edit_annotations_dialog(page: Dict[str, Any], playwright_event_loop: a
     run_async(playwright_event_loop, _step())
 
 
+@when(parsers.parse('the user opens Edit labels dialog using Edit task option for task "{task_name}"'))
+def open_edit_labels_dialog(
+    page: Dict[str, Any], task_name: str, playwright_event_loop: asyncio.AbstractEventLoop
+) -> None:
+    """Open the Edit labels dialog for the specified task."""
+
+    async def _step() -> None:
+        # Click kebab menu for the task
+        kebab_clicked = await page["tasks"].list.click_task_kebab_menu(task_name)
+        assert kebab_clicked, f"Failed to click kebab menu for task '{task_name}'"
+
+        # Wait for kebab menu dropdown to appear
+        await page["raw_page"].wait_for_timeout(500)
+
+        await page["tasks"].list.open_edit_labels_dialog()
+
+    run_async(playwright_event_loop, _step())
+
+
+@when(parsers.parse('the user adds labels to task "{task_name}" with labels "{labels}"'))
+def add_task_labels(
+    page: Dict[str, Any], task_name: str, labels: str, playwright_event_loop: asyncio.AbstractEventLoop
+) -> None:
+    """Append JSON label pairs to the open Edit labels dialog."""
+
+    async def _step() -> None:
+        try:
+            new_labels = json.loads(labels)
+        except json.JSONDecodeError as error:
+            raise AssertionError(f"Invalid labels JSON '{labels}': {error.msg}") from error
+
+        assert isinstance(new_labels, dict), f"Expected labels must be a JSON object, but received '{labels}'"
+        labels_saved = await page["tasks"].list.labels_modal.add_labels(new_labels)
+        assert labels_saved, f"Failed to add labels to task '{task_name}'"
+
+    run_async(playwright_event_loop, _step())
+
+
+@when(parsers.parse('the user opens Edit annotations dialog using Edit annotations option for task "{task_name}"'))
+def open_edit_annotations_dialog(
+    page: Dict[str, Any], task_name: str, playwright_event_loop: asyncio.AbstractEventLoop
+) -> None:
+    """Open the Edit annotations dialog for the specified task."""
+
+    async def _step() -> None:
+        # Click kebab menu for the task
+        kebab_clicked = await page["tasks"].list.click_task_kebab_menu(task_name)
+        assert kebab_clicked, f"Failed to click kebab menu for task '{task_name}'"
+
+        # Wait for kebab menu dropdown to appear
+        await page["raw_page"].wait_for_timeout(500)
+
+        await page["tasks"].list.open_edit_annotations_dialog()
+
+    run_async(playwright_event_loop, _step())
+
+
+@when(parsers.parse('the user adds new annotations to task "{task_name}" with annotations "{annotations}"'))
+def add_task_annotations(
+    page: Dict[str, Any], task_name: str, annotations: str, playwright_event_loop: asyncio.AbstractEventLoop
+) -> None:
+    """Append JSON annotation pairs to the open Edit annotations dialog."""
+
+    async def _step() -> None:
+        try:
+            new_annotations = json.loads(annotations)
+        except json.JSONDecodeError as error:
+            raise AssertionError(f"Invalid annotations JSON '{annotations}': {error.msg}") from error
+
+        assert isinstance(new_annotations, dict), (
+            f"Expected annotations must be a JSON object, but received '{annotations}'"
+        )
+        annotations_saved = await page["tasks"].list.annotations_modal.add_annotations(new_annotations)
+        assert annotations_saved, f"Failed to add annotations to task '{task_name}'"
+
+    run_async(playwright_event_loop, _step())
+
+
 @then(
     parsers.parse(
         'the annotations dialog of task details page should contain annotations with value "{annotation_value}"'

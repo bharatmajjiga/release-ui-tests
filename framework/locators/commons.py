@@ -67,5 +67,14 @@ class AnnotationsModalLocators:
     PAIR_LIST_ROW = 'div[data-test="pairs-list-row"]'
     KEY_INPUT = 'input[placeholder="Key"]'
     VALUE_INPUT = 'input[placeholder="Value"]'
+    ADD_PAIR_BUTTON = '[data-test="add-button"]'
     SAVE_BUTTON = 'button[id="confirm-action"]'
     CLOSE_BUTTON = 'button[data-test-id="modal-cancel-action"]'
+
+
+class LabelsModalLocators:
+    """Locators for the shared Edit labels modal."""
+
+    MODAL_DIALOG = 'div[aria-labelledby="labels-modal-title"]'
+    LABEL_INPUT = "input"
+    SAVE_BUTTON = 'button[data-test="confirm-action"]'

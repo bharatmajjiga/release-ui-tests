@@ -160,6 +160,7 @@ class TasksPages:
         self.task = TaskPages(page, config)
         self.taskrun = TaskRunPages(page, config)
 
+        # dialog modals
         # Create pages
         self.create = CreateTaskPage(page, config)
         self.create_run = CreateTaskRunPage(page, config)

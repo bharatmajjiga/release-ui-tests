@@ -2,6 +2,8 @@ from playwright.async_api import Page
 
 from framework.config.config import Config
 from framework.locators.tasks import TasksPageLocators
+from framework.ui_components.commons.annotations_modal import AnnotationsModal
+from framework.ui_components.commons.labels_modal import LabelsModal
 from framework.ui_components.tasks.tasks_base_page import TasksBasePage
 
 
@@ -14,6 +16,8 @@ class TasksPage(TasksBasePage):
     def __init__(self, page: Page, config: Config) -> None:
         super().__init__(page, config)
         self.locators = TasksPageLocators()
+        self.labels_modal = LabelsModal(page, config)
+        self.annotations_modal = AnnotationsModal(page, config)
 
     async def click_name_column_header(self) -> bool:
         """
@@ -55,6 +59,22 @@ class TasksPage(TasksBasePage):
         kebab_button = f"{task_row_locator} {self.base_locators.KEBAB_MENU_BUTTON}"
         return await self.click_element(kebab_button)
 
+    async def click_edit_labels_menu_item(self) -> bool:
+        """
+        Click the 'Edit Task' menu item from the kebab menu dropdown.
+
+        :return: bool: True if menu item clicked successfully
+        """
+        return await self.click_element(self.base_locators.EDIT_LABELS_MENU_ITEM)
+
+    async def click_edit_annotations_menu_item(self) -> bool:
+        """
+        Click the 'Edit Task' menu item from the kebab menu dropdown.
+
+        :return: bool: True if menu item clicked successfully
+        """
+        return await self.click_element(self.base_locators.EDIT_ANNOTATIONS_MENU_ITEM)
+
     async def click_edit_task_menu_item(self) -> bool:
         """
         Click the 'Edit Task' menu item from the kebab menu dropdown.
@@ -70,6 +90,22 @@ class TasksPage(TasksBasePage):
         :return: bool: True if menu item clicked successfully
         """
         return await self.click_element(self.base_locators.DELETE_TASK_MENU_ITEM)
+
+    async def open_edit_labels_dialog(self) -> bool:
+        """
+        Click the 'Edit labels' menu item from the kebab menu dropdown.
+
+        :return: bool: True if menu item clicked successfully
+        """
+        return await self.click_edit_labels_menu_item() and await self.labels_modal.is_visible()
+
+    async def open_edit_annotations_dialog(self) -> bool:
+        """
+        Click the 'Edit annotations' menu item from the kebab menu dropdown.
+
+        :return: bool: True if menu item clicked successfully
+        """
+        return await self.click_edit_annotations_menu_item() and await self.annotations_modal.is_visible()
 
     async def verify_task_in_list(self, task_name: str) -> bool:
         """

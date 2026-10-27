@@ -43,6 +43,20 @@ class AnnotationsModal(BasePage):
         await modal.locator(self.locators.SAVE_BUTTON).click()
         return True
 
+    async def add_annotations(self, annotations: Dict[str, str]) -> bool:
+        """Append annotation key/value pairs and save the modal."""
+        modal = self.page.locator(self.locators.MODAL_DIALOG)
+        await modal.wait_for(state="visible")
+
+        for key, value in annotations.items():
+            await modal.locator(self.locators.ADD_PAIR_BUTTON).click()
+            new_row = modal.locator(self.locators.PAIR_LIST_ROW).last
+            await new_row.locator(self.locators.KEY_INPUT).fill(str(key))
+            await new_row.locator(self.locators.VALUE_INPUT).fill(str(value))
+
+        await modal.locator(self.locators.SAVE_BUTTON).click()
+        return True
+
     async def close_annotations_dialog(self) -> bool:
         """Close the annotations modal without saving changes."""
         modal = self.page.locator(self.locators.MODAL_DIALOG)

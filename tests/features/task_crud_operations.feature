@@ -49,7 +49,7 @@ Feature: Task CRUD Operations
 
 
   @sanity
-  Scenario Outline: Edit created task & validate changes in task details page
+  Scenario Outline: Edit task via task yaml page & validate changes in task details page
     When the user edits the task "<task_name>" with YAML file "<updated_yaml_file>"
     Then the user navigates to task details tab
     And the task details page should display heading with task name as "<task_name>"
@@ -73,8 +73,8 @@ Feature: Task CRUD Operations
     And the task details page should contain appropriate count of annotations value with "<annotations>"
 
     Examples:
-      | task_name   | labels                                            | annotations                                                                    |
-      | simple-task | {"version": "v2", "app": "tekton-test-updated"} | {"description": "An updated simple task for testing", "owner": "updated-test-user"} |
+      | task_name   | labels                                            | annotations                                                                         |
+      | simple-task | {"version": "v2", "app": "tekton-test-updated"}   | {"description": "An updated simple task for testing", "owner": "updated-test-user"} |
 
   @sanity
   Scenario Outline: Validate updated annotations in task details edit annotations dialog
@@ -84,8 +84,30 @@ Feature: Task CRUD Operations
     And the user closes the edit annotations dialog
 
     Examples:
-      | task_name   | annotations                                                                    |
+      | task_name   | annotations                                                                         |
       | simple-task | {"description": "An updated simple task for testing", "owner": "updated-test-user"} |
+
+  @sanity
+  Scenario Outline: Edit task labels via edit labels dialog & validate changes in task details page
+    When the user opens Edit labels dialog using Edit task option for task "<task_name>"
+    And the user adds labels to task "<task_name>" with labels "<labels>"
+    And the user navigates to task details page for task "<task_name>"
+    Then the task details page should contain labels with value "<labels>"
+
+    Examples:
+      |  task_name   | labels                |
+      |  simple-task | {"automation": "ui"}  |
+
+  @sanity
+  Scenario Outline: Edit task annotations via edit annotations dialog & validate changes in task details page
+    When the user opens Edit annotations dialog using Edit annotations option for task "<task_name>"
+    And the user adds new annotations to task "<task_name>" with annotations "<update_annotations>"
+    And the user navigates to task details page for task "<task_name>"
+    Then the task details page should contain appropriate count of annotations value with "<annotations>"
+
+    Examples:
+      |  task_name   | update_annotations      | annotations                                                                                               |
+      |  simple-task | {"task": "automation"}  | {"description": "An updated simple task for testing", "owner": "updated-test-user", "task": "automation"} |
 
   @sanity
   Scenario Outline: Delete task and verify removal
