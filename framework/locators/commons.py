@@ -58,3 +58,14 @@ class ConfirmationModalLocators:
     # Modal buttons
     CONFIRM_BUTTON = 'button[id="confirm-action"]'
     CANCEL_BUTTON = 'button[data-test-id="modal-cancel-action"]'
+
+
+class AnnotationsModalLocators:
+    """Locators for the shared Edit annotations modal."""
+
+    MODAL_DIALOG = 'div[aria-labelledby="annotations-modal-title"]'
+    PAIR_LIST_ROW = 'div[data-test="pairs-list-row"]'
+    KEY_INPUT = 'input[placeholder="Key"]'
+    VALUE_INPUT = 'input[placeholder="Value"]'
+    SAVE_BUTTON = 'button[id="confirm-action"]'
+    CLOSE_BUTTON = 'button[data-test-id="modal-cancel-action"]'

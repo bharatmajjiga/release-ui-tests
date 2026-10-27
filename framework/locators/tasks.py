@@ -43,7 +43,8 @@ class TasksPageLocators:
     ACTIONS_COLUMN_HEADER = 'role=columnheader[name="Actions"]'
 
     # Task row verification
-    TASK_ROW_BY_NAME = 'tr[data-ouia-component-type="PF6/TableRow"]:has-text("{task_name}")'
+    TASK_ROW_BY_NAME = 'tr[data-ouia-component-type="PF6/TableRow"]:has(a[data-test-id="{task_name}"])'
+    TASK_NAME_LINK_BY_NAME = 'a[data-test-id="{task_name}"]'
 
 
 class TaskRunsPageLocators:
@@ -105,10 +106,14 @@ class TaskDetailsPageLocators:
     YAML_TAB = 'role=tab[name="YAML"]'
 
     # Details section
+    TASK_NAME = 'dd[data-test-selector="details-item-value__Name"]'
     TASK_DETAILS_HEADING = 'h2:has-text("Task details")'
     NAMESPACE_LINK = 'a[href^="/k8s/cluster/namespaces/"]'
+    NAMESPACE_VALUE = 'dd[data-test-selector="details-item-value__Namespace"]'
+    LABELS_VALUE = 'dd[data-test-selector="details-item-value__Labels"]'
     EDIT_LABELS_BUTTON = 'dt:has(button:has-text("Labels")) button:has-text("Edit")'
-    ANNOTATIONS_BUTTON = 'button:has-text("annotations")'
+    ANNOTATIONS_COUNT_VALUE = 'dd[data-test-selector="details-item-value__Annotations"]'
+    EDIT_ANNOTATIONS_BUTTON = 'button[data-test="edit-annotations"]'
 
 
 class TaskYamlPageLocators:
