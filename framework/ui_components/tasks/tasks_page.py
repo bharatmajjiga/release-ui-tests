@@ -81,6 +81,18 @@ class TasksPage(TasksBasePage):
         locator = self.locators.TASK_ROW_BY_NAME.format(task_name=task_name)
         return await self.is_visible(locator, timeout=self.config.timeout_ms)
 
+    async def click_on_given_task_in_list(self, task_name: str) -> bool:
+        """
+        Click the name link in the row for the given task.
+
+        :param str task_name: Name of the task to click
+        :return: bool: True if the task name link is clicked, otherwise False when its row is absent
+        """
+        if await self.verify_task_in_list(task_name=task_name):
+            link_locator = self.locators.TASK_NAME_LINK_BY_NAME.format(task_name=task_name)
+            return await self.click_element(link_locator)
+        return False
+
     async def verify_task_not_in_list(self, task_name: str) -> bool:
         """
         Verify that a task with the given name does NOT appear in the task list.
