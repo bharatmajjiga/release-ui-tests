@@ -25,6 +25,8 @@ class TasksBasePageLocators:
 
     # Row actions
     KEBAB_MENU_BUTTON = 'button[aria-label="Actions"]'
+    EDIT_LABELS_MENU_ITEM = 'role=menuitem[name="Edit labels"]'
+    EDIT_ANNOTATIONS_MENU_ITEM = 'role=menuitem[name="Edit annotations"]'
     EDIT_TASK_MENU_ITEM = 'role=menuitem[name="Edit Task"]'
     DELETE_TASK_MENU_ITEM = 'role=menuitem[name="Delete Task"]'
 

@@ -6,6 +6,7 @@ from framework.ui_components.base_page import BasePage
 from framework.ui_components.commons.actions_menu import ActionsMenu
 from framework.ui_components.commons.annotations_modal import AnnotationsModal
 from framework.ui_components.commons.favorites import Favorites
+from framework.ui_components.commons.labels_modal import LabelsModal
 from framework.ui_components.commons.project_selector import ProjectSelector
 from framework.ui_components.console_url_patterns import TASK_DETAILS_URL
 
@@ -20,6 +21,7 @@ class TaskDetailsPage(BasePage):
         self.favorites = Favorites(page, config)
         self.actions_menu = ActionsMenu(page, config)
         self.annotations_modal = AnnotationsModal(page, config)
+        self.labels_modal = LabelsModal(page, config)
 
     async def verify_on_page(self) -> bool:
         """
@@ -93,6 +95,11 @@ class TaskDetailsPage(BasePage):
         :return: bool: True if click succeeds.
         """
         return await self.click_element(self.locators.EDIT_LABELS_BUTTON)
+
+    async def open_labels_dialog(self) -> bool:
+        """Open the Edit labels dialog and wait until it is visible."""
+        await self.click_edit_labels()
+        return await self.labels_modal.is_visible()
 
     async def get_annotations_count_value(self) -> str:
         """
