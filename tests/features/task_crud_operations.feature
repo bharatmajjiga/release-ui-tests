@@ -1,3 +1,4 @@
+@regression
 Feature: Task CRUD Operations
 
   Background:

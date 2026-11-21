@@ -38,6 +38,10 @@ class ProjectSelectorLocators:
     """Locators for the Project Selector dropdown (common across pages)."""
 
     PROJECT_SELECTOR_BUTTON = 'button:has-text("Project:")'
+    # Typed into once the dropdown is open so long project lists still surface the target.
+    PROJECT_FILTER_INPUT = (
+        'input[data-test="dropdown-text-filter"], input[aria-label*="Filter"], input[placeholder*="Filter"]'
+    )
     PROJECT_MENU_ITEM = 'role=menuitem[name="{project_name}"]'
     ALL_PROJECTS_MENU_ITEM = 'role=menuitem[name="All Projects"]'
 
@@ -78,3 +82,10 @@ class LabelsModalLocators:
     MODAL_DIALOG = 'div[aria-labelledby="labels-modal-title"]'
     LABEL_INPUT = "input"
     SAVE_BUTTON = 'button[data-test="confirm-action"]'
+    CLOSE_BUTTON = 'button[data-test-id="modal-cancel-action"]'
+
+
+class AlertLocators:
+    """Locators for validation alerts shown by forms and edit dialogs."""
+
+    ERROR_ALERT = 'div[data-ouia-component-type="PF6/Alert"]'
