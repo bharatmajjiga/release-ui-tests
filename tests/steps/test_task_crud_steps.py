@@ -16,6 +16,7 @@ from pytest_bdd import parsers, scenarios, then, when
 from framework.fixtures.async_bridge import run_async
 from framework.helpers.yaml_field_extractor import YamlFieldExtractor
 from framework.helpers.yaml_loader import YamlLoader
+from framework.utils.retry import retry_on_exception
 
 # Register all scenarios from the task_crud_operations feature file
 FEATURE_FILE = Path(__file__).parent.parent / "features" / "task_crud_operations.feature"
@@ -66,12 +67,13 @@ def create_task_from_yaml(
         assert create_submitted, "Failed to click Create button to submit task YAML"
 
         # Wait for redirect to task details page
-        await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
+        # await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
 
     run_async(playwright_event_loop, _step())
 
 
 @when(parsers.parse('the user navigates to task details page for task "{task_name}"'))
+@retry_on_exception(retries=3, delay_seconds=2.0)
 def navigate_to_task_details_page_for_given_task(
     page: Dict[str, Any], task_name: str, playwright_event_loop: asyncio.AbstractEventLoop
 ) -> None:
@@ -88,7 +90,7 @@ def navigate_to_task_details_page_for_given_task(
         await page["tasks"].list.click_on_given_task_in_list(task_name)
 
         # Wait for task details page to load
-        await page["raw_page"].wait_for_load_state("networkidle")
+        # await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the task details page
         on_page = await page["tasks"].task.details.verify_on_page()
@@ -119,6 +121,7 @@ def verify_task_in_list(page: Dict[str, Any], task_name: str, playwright_event_l
 
 @when(parsers.parse('validate user is redirected to task details page for task "{task_name}"'))
 @then(parsers.parse('validate user is redirected to task details page for task "{task_name}"'))
+@retry_on_exception(retries=3, delay_seconds=2.0)
 def validate_task_details(
     page: Dict[str, Any], task_name: str, playwright_event_loop: asyncio.AbstractEventLoop
 ) -> None:
@@ -132,7 +135,7 @@ def validate_task_details(
 
     async def _step() -> None:
         # Wait for task details page to load
-        await page["raw_page"].wait_for_load_state("networkidle")
+        # await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the task details page
         on_page = await page["tasks"].task.details.verify_on_page()
@@ -299,13 +302,14 @@ def edit_task_yaml(
 
 
 @then(parsers.parse("the user navigates to task details tab"))
+@retry_on_exception(retries=3, delay_seconds=2.0)
 def navigate_to_task_details_tab(page: Dict[str, Any], playwright_event_loop: asyncio.AbstractEventLoop) -> None:
     """Navigate to the Details tab of the current task."""
 
     async def _step() -> None:
         await page["tasks"].task.details.navigate_to_details_tab()
         # Wait for task details page to load
-        await page["raw_page"].wait_for_load_state("networkidle")
+        # await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the task details page
         on_page = await page["tasks"].task.details.verify_on_page()

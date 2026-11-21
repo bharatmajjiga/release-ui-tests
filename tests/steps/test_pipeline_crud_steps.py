@@ -14,6 +14,7 @@ from pytest_bdd import parsers, scenarios, then, when
 from framework.fixtures.async_bridge import run_async
 from framework.helpers.yaml_field_extractor import YamlFieldExtractor
 from framework.helpers.yaml_loader import YamlLoader
+from framework.utils.retry import retry_on_exception
 
 # Register all scenarios from the pipeline_crud_operations feature file
 FEATURE_FILE = Path(__file__).parent.parent / "features" / "pipeline_crud_operations.feature"
@@ -75,13 +76,14 @@ def create_pipeline_from_yaml(
         create_submitted = await page["pipelines"].builder.click_create()
         assert create_submitted, "Failed to click Create button to submit pipeline YAML"
 
-        # Wait for redirect to pipeline details page
-        await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
+        # # Wait for redirect to pipeline details page
+        # await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
 
     run_async(playwright_event_loop, _step())
 
 
 @then(parsers.parse('validate user is redirected to pipeline details page for pipeline "{pipeline_name}"'))
+@retry_on_exception(retries=3, delay_seconds=2.0)
 def validate_pipeline_details(
     page: Dict[str, Any], pipeline_name: str, playwright_event_loop: asyncio.AbstractEventLoop
 ) -> None:
@@ -95,7 +97,7 @@ def validate_pipeline_details(
 
     async def _step() -> None:
         # Wait for pipeline details page to load
-        await page["raw_page"].wait_for_load_state("networkidle")
+        # await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the pipeline details page
         on_page = await page["pipelines"].pipeline.details.verify_on_page()

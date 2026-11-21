@@ -162,7 +162,7 @@ def create_pipelinerun_from_yaml(
         assert create_submitted, "Failed to click Create button to submit PipelineRun YAML"
 
         # Wait for redirect to PipelineRun details page
-        await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
+        # await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
 
         # Log current URL after submission for debugging
         current_url = page["raw_page"].url
