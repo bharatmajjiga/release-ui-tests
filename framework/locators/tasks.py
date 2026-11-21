@@ -61,9 +61,14 @@ class TaskRunsPageLocators:
     STARTED_COLUMN_HEADER = 'role=columnheader[name="Started"]'
     ACTIONS_COLUMN_HEADER = 'role=columnheader[name="Actions"]'
 
+    EDIT_TASKRUN_MENU_ITEM = 'role=menuitem[name="Edit TaskRun"]'
     DELETE_TASKRUN_MENU_ITEM = 'role=menuitem[name="Delete TaskRun"]'
     # TaskRun row verification
     TASKRUN_ROW_BY_NAME = 'tr[data-ouia-component-type="PF6/TableRow"]:has-text("{taskrun_name}")'
+    TASKRUN_NAME_IN_ROW_BY_NAME = (
+        'tr[data-ouia-component-type="PF6/TableRow"]:has-text("{taskrun_name}") '
+        "td:first-child a.co-resource-item__resource-name"
+    )
 
 
 class CreateTaskPageLocators:
@@ -193,6 +198,11 @@ class TaskRunDetailsPageLocators:
     TASKRUN_DETAILS_HEADING = 'h2:has-text("TaskRun details")'
     NAMESPACE_LINK = 'a[href^="/k8s/cluster/namespaces/"]'
     STATUS_LABEL = 'dt:has-text("Status")'
+    TASKRUN_NAME = 'dd[data-test-selector="details-item-value__Name"]'
+    LABELS_VALUE = 'dd[data-test-selector="details-item-value__Labels"]'
+    EDIT_LABELS_BUTTON = 'button[data-test="Labels-details-item__edit-button"]'
+    EDIT_ANNOTATIONS_BUTTON = 'button[data-test="edit-annotations"]'
+    ANNOTATIONS_COUNT_VALUE = 'dd[data-test-selector="details-item-value__Annotations"]'
 
 
 class TaskRunYamlPageLocators:

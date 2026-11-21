@@ -29,3 +29,10 @@ class LabelsModal(BasePage):
         await modal.locator(self.locators.LABEL_INPUT).fill(labels_text)
         await modal.locator(self.locators.SAVE_BUTTON).click()
         return True
+
+    async def close_labels_dialog(self) -> bool:
+        """Close the labels modal without saving changes."""
+        modal = self.page.locator(self.locators.MODAL_DIALOG)
+        await modal.wait_for(state="visible")
+        await modal.locator(self.locators.CLOSE_BUTTON).click()
+        return True

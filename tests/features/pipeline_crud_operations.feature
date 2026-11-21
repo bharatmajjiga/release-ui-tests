@@ -1,3 +1,4 @@
+@regression
 Feature: Pipeline CRUD Operations
 
   Background:
