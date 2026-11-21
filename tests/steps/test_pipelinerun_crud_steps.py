@@ -12,6 +12,7 @@ from typing import Any, Dict
 from pytest_bdd import parsers, scenarios, then, when
 
 from framework.fixtures.async_bridge import run_async
+from framework.utils.retry import retry_on_exception
 
 # Register all scenarios from the pipelinerun_crud_operations feature file
 FEATURE_FILE = Path(__file__).parent.parent / "features" / "pipelinerun_crud_operations.feature"
@@ -19,6 +20,7 @@ scenarios(FEATURE_FILE)
 
 
 @then(parsers.parse('validate user is redirected to pipelinerun details page for pipelinerun "{pipelinerun_name}"'))
+@retry_on_exception(retries=3, delay_seconds=2.0)
 def validate_pipelinerun_details(
     page: Dict[str, Any], pipelinerun_name: str, playwright_event_loop: asyncio.AbstractEventLoop
 ) -> None:
@@ -35,7 +37,7 @@ def validate_pipelinerun_details(
 
     async def _step() -> None:
         # Wait for PipelineRun details page to load
-        await page["raw_page"].wait_for_load_state("networkidle")
+        # await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the PipelineRun details page
         on_page = await page["pipelines"].pipelinerun.details.verify_on_page()

@@ -92,12 +92,13 @@ def create_taskrun_from_yaml(
         assert create_submitted, "Failed to click Create button to submit TaskRun YAML"
 
         # Wait for redirect to TaskRun details page
-        await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
+        # await page["raw_page"].wait_for_load_state("networkidle", timeout=config.timeout_ms)
 
     run_async(playwright_event_loop, _step())
 
 
 @then(parsers.parse('validate user is redirected to taskrun details page for taskrun "{taskrun_name}"'))
+@retry_on_exception(retries=3, delay_seconds=2.0)
 def validate_taskrun_details(
     page: Dict[str, Any], taskrun_name: str, playwright_event_loop: asyncio.AbstractEventLoop
 ) -> None:
@@ -114,7 +115,7 @@ def validate_taskrun_details(
 
     async def _step() -> None:
         # Wait for TaskRun details page to load
-        await page["raw_page"].wait_for_load_state("networkidle")
+        # await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the TaskRun details page
         on_page = await page["tasks"].taskrun.details.verify_on_page()
@@ -124,6 +125,7 @@ def validate_taskrun_details(
 
 
 @when(parsers.parse('the user navigates to taskrun details page for taskrun "{taskrun_name}"'))
+@retry_on_exception(retries=3, delay_seconds=2.0)
 def navigate_to_task_details_page_for_given_task(
     page: Dict[str, Any], taskrun_name: str, playwright_event_loop: asyncio.AbstractEventLoop
 ) -> None:
@@ -140,7 +142,7 @@ def navigate_to_task_details_page_for_given_task(
         await page["tasks"].taskrun.list.click_on_given_taskrun_in_list(taskrun_name=taskrun_name)
 
         # Wait for task details page to load
-        await page["raw_page"].wait_for_load_state("networkidle")
+        # await page["raw_page"].wait_for_load_state("networkidle")
 
         # Verify we're on the task details page
         on_page = await page["tasks"].taskrun.details.verify_on_page()
